@@ -488,15 +488,38 @@ function normalizarNombre(s) {
     .trim();
 }
 
-// ─── Helper: Buscar técnico fuzzy ─────────────────────────────────────────────
+// ─── Helper: Buscar técnico fuzzy (MEJORADO) ──────────────────────────────────
 function buscarTecnicoFuzzy(entrada, tecnicos) {
-  if (!entrada || !tecnicos) return null;
-  const norm = normalizarNombre(entrada);
-  const palabras = norm.split(/\s+/);
-  return tecnicos.find(t => {
-    const normT = normalizarNombre(t);
-    return palabras.every(p => normT.includes(p));
-  });
+  if (!entrada || !tecnicos || !Array.isArray(tecnicos) || tecnicos.length === 0) {
+    return null;
+  }
+  
+  const norm = normalizarNombre(entrada).trim();
+  if (!norm || norm.length === 0) return null;
+  
+  // 1. Buscar coincidencia exacta
+  let resultado = tecnicos.find(t => normalizarNombre(t) === norm);
+  if (resultado) return resultado;
+  
+  // 2. Buscar que el técnico CONTENGA toda la entrada (e.g., "Ponguillo" en "PEDRO PAUL PONGUILLO AYALA")
+  resultado = tecnicos.find(t => normalizarNombre(t).includes(norm));
+  if (resultado) return resultado;
+  
+  // 3. Buscar que entrada y técnico compartan palabras clave (min 3 chars)
+  const palabras = norm.split(/\s+/).filter(p => p.length >= 2);
+  if (palabras.length > 0) {
+    resultado = tecnicos.find(t => {
+      const normT = normalizarNombre(t);
+      return palabras.every(p => normT.includes(p));
+    });
+    if (resultado) return resultado;
+  }
+  
+  // 4. Última opción: buscar coincidencia parcial (primeras letras)
+  resultado = tecnicos.find(t => normalizarNombre(t).startsWith(norm));
+  if (resultado) return resultado;
+  
+  return null;
 }
 
 // ─── Helper: Parsear Excel (MEJORADO) ─────────────────────────────────────────
@@ -541,8 +564,9 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
           if (idx >= 0) colDias[h] = idx;
         }
 
-        // Procesar datos
+        // Procesar datos - UN REGISTRO POR FINCA/DÍA (CON MÚLTIPLES TÉCNICOS)
         const records = [];
+        const recordMap = {}; // Map: "expActual|finca|fecha" → record
         const detectadas = {}; // Nuevas fincas/exportadoras
         let expActual = '';
         
@@ -558,22 +582,20 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
           if (expCelda) expActual = expCelda;
           const finca = fincaCelda;
           
-          // Si auto-completar semana: agregar TODO los días (lunes a domingo)
+          // Si auto-completar semana: procesar TODO los días (lunes a domingo)
           const diasAgregar = autocompletarSemana 
             ? Object.keys(diaMap)
-            : Object.keys(diaMap).filter(dia => row[colDias[dia]]?.toString().trim());
+            : Object.keys(diaMap).filter(dia => {
+                const tech = row[colDias[dia]]?.toString().trim();
+                return tech && tech !== '-' && tech !== '—';
+              });
           
           for (const dia of diasAgregar) {
             const col = colDias[dia];
             const tecnicoCelda = row[col]?.toString().trim() || '';
-            if (!tecnicoCelda && !autocompletarSemana) continue;
             
-            // Parsear técnicos múltiples (separados por / o ,)
-            const tecnicos = tecnicoCelda
-              .split(/[\/,;]+/)
-              .map(t => t.trim())
-              .filter(t => t && t !== '-' && t !== '—')
-              .slice(0, 3); // Máximo 3 técnicos
+            // Saltar si está vacío y no es auto-completar
+            if (!tecnicoCelda && !autocompletarSemana) continue;
             
             // Calcular fecha real
             const dayNum = diaMap[dia];
@@ -584,25 +606,46 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
             monday.setDate(monday.getDate() + dayNum);
             const fecha = monday.toISOString().split('T')[0];
             
+            // Crear key única para evitar duplicados
+            const key = `${expActual}|${finca}|${fecha}`;
+            
+            // Parsear técnicos múltiples (separados por / o ,)
+            const tecnicos = tecnicoCelda
+              .split(/[\/,;]+/)
+              .map(t => t.trim())
+              .filter(t => t && t !== '-' && t !== '—');
+            
             // Buscar técnicos válidos en config
             const tecnicosValidos = tecnicos
               .map(t => buscarTecnicoFuzzy(t, config.tecnicos) || t)
               .filter(t => t);
             
-            records.push({ 
-              expActual, 
-              finca, 
-              tecnicos: tecnicosValidos, 
-              fecha, 
-              zona: null,
-              nuevaExp: false,
-              nuevaFinca: false
-            });
+            // Si ya existe record con esta key, agregar técnicos (sin duplicados)
+            if (recordMap[key]) {
+              const tecnicosExistentes = new Set(recordMap[key].tecnicos);
+              tecnicosValidos.forEach(t => tecnicosExistentes.add(t));
+              recordMap[key].tecnicos = Array.from(tecnicosExistentes);
+            } else {
+              // Crear nuevo record
+              recordMap[key] = {
+                expActual, 
+                finca, 
+                tecnicos: tecnicosValidos, 
+                fecha, 
+                zona: null,
+                nuevaExp: false,
+                nuevaFinca: false
+              };
+            }
           }
         }
+        
+        // Convertir map a array
+        const recordsArray = Object.values(recordMap);
+        const detectadas = {}; // Nuevas fincas/exportadoras
 
         // Detectar zona por exportadoras
-        const todasExp = [...new Set(records.map(r => r.expActual))];
+        const todasExp = [...new Set(recordsArray.map(r => r.expActual))];
         const zonas = config.zonas || [];
         const puntos = {};
         zonas.forEach(z => puntos[z] = 0);
@@ -620,7 +663,7 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
         const zonaDet = Object.entries(puntos).sort(([a, b], [c, d]) => d - b)[0]?.[0] || '';
 
         // Mapear técnicos, fincas y DETECTAR NUEVAS EXPORTADORAS
-        records.forEach(r => {
+        recordsArray.forEach(r => {
           r.zona = zonaDet;
           
           // Buscar exportadora canónica (o crear nuevo registro si no existe)
@@ -655,7 +698,7 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
           }
         });
 
-        resolve({ records, detectadas });
+        resolve({ records: recordsArray, detectadas });
       } catch (err) {
         reject(err);
       }
@@ -676,12 +719,27 @@ function TabImportar({ config, setConfig, onImportar }) {
 
   const handleFile = async (file) => {
     if (!fechaRef) {
-      alert('Selecciona una fecha primero');
+      alert('Selecciona una fecha o semana primero');
       return;
     }
+    
     setParseando(true);
     try {
-      const { records, detectadas } = await parsearExcelFile(file, fechaRef, config, autocompletarSemana);
+      // Convertir fechaRef (que puede ser YYYY-Www o YYYY-MM-DD) a una fecha válida
+      let fechaParaParser = fechaRef;
+      if (fechaParaParser.includes('-W')) {
+        // Es formato de semana ISO: converter a fecha del lunes de esa semana
+        const [year, wkStr] = fechaParaParser.split('-W');
+        const wk = parseInt(wkStr);
+        const jan4 = new Date(+year, 0, 4);
+        const dow = jan4.getDay() || 7;
+        const lunes = new Date(jan4);
+        lunes.setDate(jan4.getDate() - dow + 1);
+        lunes.setDate(lunes.getDate() + (wk - 1) * 7);
+        fechaParaParser = lunes.toISOString().split('T')[0];
+      }
+      
+      const { records, detectadas } = await parsearExcelFile(file, fechaParaParser, config, false);
       setRegistrosParsea(records);
       setDetectadasNuevas(detectadas);
       setCambios({});
@@ -752,40 +810,95 @@ function TabImportar({ config, setConfig, onImportar }) {
       <div className="card-body">
         <div className="card-title">📥 Importar distribuciones desde Excel</div>
 
-        {/* Paso 1: Seleccionar fecha y opciones */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-          <div className="form-group">
-            <label>Semana de la distribución</label>
-            <input
-              type="date"
-              value={fechaRef}
-              onChange={e => setFechaRef(e.target.value)}
-              style={{ maxWidth: '100%' }}
-            />
-            {fechaRef && (
-              <span className="badge badge-blue" style={{ fontSize: 12, margin: '8px 0' }}>
-                {getWeekLabel(fechaAISOWeek(fechaRef))}
-              </span>
+        {/* Paso 1: Seleccionar tipo (Semana/Día) y valor */}
+        {registrosParsea.length === 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 8 }}>Importar por:</label>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="radio"
+                  id="tipo-semana"
+                  value="semana"
+                  checked={!autocompletarSemana}
+                  onChange={() => setAutocompletarSemana(false)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <label htmlFor="tipo-semana" style={{ cursor: 'pointer', margin: 0, fontSize: 13 }}>📅 Semana</label>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="radio"
+                  id="tipo-dia"
+                  value="dia"
+                  checked={autocompletarSemana}
+                  onChange={() => setAutocompletarSemana(true)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <label htmlFor="tipo-dia" style={{ cursor: 'pointer', margin: 0, fontSize: 13 }}>📆 Día específico</label>
+              </div>
+            </div>
+
+            {/* Input dinámico según tipo */}
+            <div className="form-group">
+              <label>{!autocompletarSemana ? 'Número de semana (W)' : 'Fecha específica'}</label>
+              {!autocompletarSemana ? (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    min="1"
+                    max="53"
+                    placeholder="Ej: 14"
+                    value={fechaRef.split('-').length === 2 ? fechaRef.split('-W')[1] || '' : ''}
+                    onChange={e => {
+                      const wk = parseInt(e.target.value);
+                      if (wk >= 1 && wk <= 53) {
+                        const year = new Date().getFullYear();
+                        setFechaRef(`${year}-W${String(wk).padStart(2, '0')}`);
+                      }
+                    }}
+                    style={{ maxWidth: 80 }}
+                  />
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>de 2026</span>
+                </div>
+              ) : (
+                <input
+                  type="date"
+                  value={fechaRef.match(/(\d{4}-\d{2}-\d{2})/) ? fechaRef.match(/(\d{4}-\d{2}-\d{2})/)[0] : fechaRef}
+                  onChange={e => setFechaRef(e.target.value)}
+                  style={{ maxWidth: 200 }}
+                />
+              )}
+              {fechaRef && (
+                <span className="badge badge-blue" style={{ fontSize: 12, marginTop: 8 }}>
+                  {!autocompletarSemana ? getWeekLabel(fechaRef) : `${new Date(fechaRef).toLocaleDateString('es-ES')}`}
+                </span>
+              )}
+            </div>
+
+            {/* Checkbox Auto-completar (dentro de Semana) */}
+            {!autocompletarSemana && (
+              <div className="form-group" style={{ marginTop: 12 }}>
+                <label style={{ marginBottom: 8 }}>Opciones</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f8fafc', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+                  <input
+                    type="checkbox"
+                    id="autocomplete-semana"
+                    checked={fechaRef.includes('-W')}
+                    onChange={e => {
+                      // Dummy checkbox - la lógica se maneja por radio button
+                    }}
+                    disabled
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <label style={{ cursor: 'pointer', margin: 0, fontSize: 12, color: '#64748b' }}>
+                    ℹ️ Completará toda la semana (lunes a domingo) automáticamente
+                  </label>
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Checkbox Auto-completar */}
-          <div className="form-group">
-            <label style={{ marginBottom: 12 }}>Opciones</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f8fafc', borderRadius: 6, border: '1px solid #e2e8f0' }}>
-              <input
-                type="checkbox"
-                id="autocomplete-semana"
-                checked={autocompletarSemana}
-                onChange={e => setAutocompletarSemana(e.target.checked)}
-                style={{ cursor: 'pointer' }}
-              />
-              <label htmlFor="autocomplete-semana" style={{ cursor: 'pointer', margin: 0, fontSize: 12 }}>
-                ✓ Auto-completar semana (agregar todos los días, incluso sin asignación)
-              </label>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Paso 2: Upload area */}
         {registrosParsea.length === 0 ? (
