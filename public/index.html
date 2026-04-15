@@ -9,103 +9,119 @@
     body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; background: #f5f7fa; color: #1a1a2e; }
     #app { display: flex; flex-direction: column; min-height: 100vh; }
 
-    /* Topbar */
+    /* ── Topbar ── */
     .topbar { background: #0f2040; color: #fff; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.25); position: sticky; top: 0; z-index: 100; }
-    .topbar-logo { font-size: 15px; font-weight: 700; margin-right: auto; }
+    .topbar-logo { font-size: 15px; font-weight: 700; margin-right: auto; white-space: nowrap; }
     .topbar-logo span { color: #f9a825; }
     .nav-tab { background: transparent; border: none; color: rgba(255,255,255,.6); padding: 0 16px; height: 56px; cursor: pointer; font-size: 13px; border-bottom: 3px solid transparent; transition: .15s; font-weight: 500; }
     .nav-tab:hover { color: #fff; }
     .nav-tab.active { color: #fff; border-bottom-color: #f9a825; }
 
-    /* Layout */
-    .main { flex: 1; padding: 20px 24px; max-width: 1300px; width: 100%; margin: 0 auto; }
-    .card { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 16px; }
-    .card-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: #0f2040; }
+    /* ── Layout ── */
+    .main { flex: 1; padding: 20px 24px; max-width: 1340px; width: 100%; margin: 0 auto; }
+    .card { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px; }
+    .card-body { padding: 20px; }
+    .card-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #0f2040; }
 
-    /* Form */
-    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 4px; }
+    /* ── Formulario ── */
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
     .form-group { margin-bottom: 14px; }
     .form-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 5px; letter-spacing: .4px; }
+    .label-opt { font-weight: 400; color: #94a3b8; text-transform: none; font-size: 10px; margin-left: 4px; }
 
-    /* Inputs */
-    select, input[type="week"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; font-size: 13px; cursor: pointer; width: 100%; }
+    /* ── Inputs ── */
+    select, input[type="date"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; font-size: 13px; width: 100%; cursor: pointer; }
     input[type="text"], input[type="number"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; width: 100%; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: #0f2040; box-shadow: 0 0 0 3px rgba(15,32,64,.08); }
     textarea { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; font-family: inherit; resize: vertical; }
 
-    /* Buttons */
+    /* ── Botones ── */
     .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; cursor: pointer; font-size: 12px; font-weight: 500; white-space: nowrap; transition: .12s; }
     .btn:hover { background: #f1f5f9; border-color: #94a3b8; }
     .btn.amber { background: #f9a825; color: #1a1a2e; border: none; font-weight: 700; font-size: 13px; }
     .btn.amber:hover { background: #e09720; }
-    .btn.sm { padding: 4px 8px; font-size: 11px; }
+    .btn.sm { padding: 4px 9px; font-size: 11px; }
     .btn.danger { color: #dc2626; border-color: #fca5a5; }
     .btn.danger:hover { background: #fee2e2; }
+    .btn.ghost { border: 1px dashed #cbd5e1; color: #64748b; font-size: 11px; }
+    .btn.ghost:hover { border-color: #94a3b8; background: #f8fafc; }
 
-    /* Chips */
+    /* ── Chips ── */
     .chip { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 3px 8px; font-size: 11px; color: #1e40af; font-weight: 500; margin-right: 4px; margin-bottom: 4px; }
     .chip.remove { cursor: pointer; }
     .chip.remove:hover { background: #dbeafe; }
 
-    /* Fincas checklist */
+    /* ── Fincas checklist ── */
     .checkbox-list { max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 4px; cursor: pointer; border-radius: 4px; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 4px; border-radius: 4px; }
     .checkbox-item:hover { background: #f8fafc; }
-    .checkbox-item input { cursor: pointer; width: 14px; height: 14px; }
+    .checkbox-item input { cursor: pointer; width: 14px; height: 14px; flex-shrink: 0; }
     .checkbox-item label { cursor: pointer; flex: 1; margin: 0; font-size: 12px; }
 
-    /* Stats */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    /* ── Badges ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .badge-ok      { background: #dcfce7; color: #16a34a; }
+    .badge-error   { background: #fee2e2; color: #dc2626; }
+    .badge-pending { background: #fef3c7; color: #b45309; }
+    .badge-blue    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+    /* ── Banner diferencia ── */
+    .diff-banner { padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+    .diff-banner.ok    { background: #dcfce7; color: #16a34a; }
+    .diff-banner.error { background: #fee2e2; color: #dc2626; }
+
+    /* ── Stats ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
     .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 12px; text-align: center; }
     .stat-val { font-size: 26px; font-weight: 700; color: #0f2040; line-height: 1.1; }
     .stat-label { font-size: 10px; color: #64748b; margin-top: 5px; text-transform: uppercase; letter-spacing: .3px; }
-    .stat.error { border-color: #fca5a5; background: #fff5f5; }
+    .stat.error   { border-color: #fca5a5; background: #fff5f5; }
     .stat.error .stat-val { color: #dc2626; }
+    .stat.pending { border-color: #fcd34d; background: #fffbeb; }
+    .stat.pending .stat-val { color: #b45309; }
 
-    /* Table */
+    /* ── Cabecera de día ── */
+    .day-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 2px solid #e2e8f0; background: #f8fafc; border-radius: 8px 8px 0 0; }
+    .day-name { font-size: 14px; font-weight: 700; color: #0f2040; }
+
+    /* ── Tabla ── */
     table { width: 100%; border-collapse: collapse; }
-    table thead { background: #f8fafc; }
-    table th { padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 11px; font-weight: 700; color: #0f2040; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
-    table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; vertical-align: middle; }
-    .row-ok { background: #f0fdf4; }
+    table thead { background: #f1f5f9; }
+    table th { padding: 9px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+    table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: middle; }
+    .row-ok      { background: #f0fdf4; }
     .row-ok:hover { background: #dcfce7; }
-    .row-error { background: #fff5f5; }
+    .row-error   { background: #fff5f5; }
     .row-error:hover { background: #fee2e2; }
-    .row-detail { background: #f8fafc; }
-    .row-total { background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1 !important; }
+    .row-pending { background: #fffbeb; }
+    .row-pending:hover { background: #fef3c7; }
+    .row-detail  { background: #f8fafc; }
+    .row-total   { background: #e2e8f0; font-weight: 700; }
+    .row-total td { border-top: 2px solid #cbd5e1; border-bottom: none; font-size: 12px; }
 
-    /* Badge */
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
-    .badge-ok { background: #dcfce7; color: #16a34a; }
-    .badge-error { background: #fee2e2; color: #dc2626; }
-    .badge-warn { background: #fef3c7; color: #d97706; }
-
-    /* Diff banner */
-    .diff-banner { padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-    .diff-banner.ok { background: #dcfce7; color: #16a34a; }
-    .diff-banner.error { background: #fee2e2; color: #dc2626; }
-
-    /* Grand total */
+    /* ── Gran total ── */
     .grand-total { background: #0f2040; color: #fff; border-radius: 8px; padding: 20px 24px; display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 16px; margin-bottom: 16px; }
     .grand-total .val { font-size: 28px; font-weight: 700; line-height: 1.1; }
     .grand-total .lbl { font-size: 10px; color: rgba(255,255,255,.6); margin-top: 4px; text-transform: uppercase; letter-spacing: .4px; }
 
-    /* Modal */
+    /* ── Acciones ── */
+    .actions { display: flex; gap: 4px; flex-wrap: nowrap; }
+
+    /* ── Inline add ── */
+    .inline-add { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .inline-add input { flex: 1; }
+
+    /* ── Modal ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal-box { background: #fff; border-radius: 10px; padding: 24px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .modal-box { background: #fff; border-radius: 10px; padding: 24px; width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
     .modal-title { font-size: 15px; font-weight: 700; color: #0f2040; }
 
-    /* Zone header in summary */
-    .zone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .zone-name { font-size: 14px; font-weight: 700; color: #0f2040; }
-
-    /* Actions cell */
-    .actions { display: flex; gap: 4px; }
-
-    /* Saving indicator */
+    /* ── Misc ── */
     .saving-dot { font-size: 11px; color: #f9a825; animation: pulse 1s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+    .empty-state { text-align: center; color: #94a3b8; padding: 48px 20px; font-size: 14px; }
+    .sep { height: 1px; background: #e2e8f0; margin: 8px 0; }
   </style>
 </head>
 <body>
@@ -116,90 +132,206 @@
 <script type="text/babel">
 const { useState, useEffect } = React;
 
-// ── Helpers de compatibilidad hacia atrás ──────────────────────────────────
-// Los registros viejos tienen `cantidad` + `completado`.
-// Los nuevos tienen `planificado` + `inspeccionado`.
-const getPlan = (p) => p.planificado != null ? p.planificado : (p.cantidad ?? 0);
-const getInsp = (p) => p.inspeccionado != null ? p.inspeccionado : (p.completado ? (p.cantidad ?? 0) : 0);
-const getDiff = (p) => +(getPlan(p) - getInsp(p)).toFixed(2);
-const hasError = (p) => getDiff(p) !== 0;
+// ─── Constantes de fecha ──────────────────────────────────────────────────────
+const DIAS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const DIA_ORDEN = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
-// ── FormularioPlan: reutilizado en Agregar y en el modal de edición ─────────
-function FormularioPlan({ config, inicial, esEdicion, onGuardar, onCancelar, semanaFija }) {
-  const [semana,       setSemana]       = useState(inicial?.semana       ?? semanaFija ?? '');
-  const [zona,         setZona]         = useState(inicial?.zona         ?? '');
-  const [exportadora,  setExportadora]  = useState(inicial?.exportadora  ?? '');
-  const [planificado,  setPlanificado]  = useState(inicial ? String(getPlan(inicial)) : '');
-  const [inspeccionado,setInspeccionado]= useState(inicial ? String(getInsp(inicial)) : '');
-  const [fincas,       setFincas]       = useState(inicial?.fincas       ?? []);
-  const [tecnicos,     setTecnicos]     = useState(inicial?.tecnicos     ?? []);
-  const [motivo,       setMotivo]       = useState(inicial?.motivo       ?? '');
-  const [buscarFinca,  setBuscarFinca]  = useState('');
+function parseFecha(str) {
+  // Evita problemas de zona horaria parseando manualmente
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
 
-  const planNum  = parseFloat(planificado)   || 0;
-  const inspNum  = parseFloat(inspeccionado) || 0;
-  const ambosOk  = planificado !== '' && inspeccionado !== '';
-  const hayDiff  = ambosOk && planNum !== inspNum;
-  const diffNum  = +(planNum - inspNum).toFixed(2);
+function fechaAISOWeek(dateStr) {
+  const d = parseFecha(dateStr);
+  const dow = d.getDay() || 7; // 1=Lun, 7=Dom
+  d.setDate(d.getDate() + 4 - dow); // Jueves de la semana ISO
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const wk = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return `${d.getFullYear()}-W${String(wk).padStart(2, '0')}`;
+}
 
+function getDia(dateStr) {
+  return DIAS[parseFecha(dateStr).getDay()];
+}
+
+function formatFechaCorta(dateStr) {
+  const d = parseFecha(dateStr);
+  return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+}
+
+function getWeekLabel(isoWeek) {
+  const [yr, wkStr] = isoWeek.split('-W');
+  const year = +yr, wk = +wkStr;
+  const jan4 = new Date(year, 0, 4);
+  const dow = jan4.getDay() || 7;
+  const lunes = new Date(jan4);
+  lunes.setDate(jan4.getDate() - dow + 1 + (wk - 1) * 7);
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
+  const l = `${lunes.getDate()} ${MESES[lunes.getMonth()]}`;
+  const d = `${domingo.getDate()} ${MESES[domingo.getMonth()]} ${domingo.getFullYear()}`;
+  return `Sem. ${wk} · ${l} al ${d}`;
+}
+
+// ─── Compatibilidad hacia atrás ───────────────────────────────────────────────
+const getPlan = p => p.planificado != null ? p.planificado : (p.cantidad ?? 0);
+const getInsp = p => {
+  if ('inspeccionado' in p) return p.inspeccionado; // null = pendiente, número = completo
+  if (p.completado === true)  return p.cantidad ?? 0;
+  if (p.completado === false) return null;
+  return null;
+};
+const getDiff    = p => getInsp(p) == null ? null : +(getPlan(p) - getInsp(p)).toFixed(2);
+const isPending  = p => getInsp(p) == null;
+const hasError   = p => !isPending(p) && getDiff(p) !== 0;
+const isOK       = p => !isPending(p) && getDiff(p) === 0;
+
+// ─── API ─────────────────────────────────────────────────────────────────────
+const saveContenedores = planes =>
+  fetch('/api/contenedores', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contenedores: planes }) });
+
+const saveConfig = cfg =>
+  fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fincas: cfg.fincas, tecnicos: cfg.tecnicos }) });
+
+// ─── Formulario (compartido entre Agregar y Modal de edición) ─────────────────
+function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, onGuardar, onCancelar }) {
+  const [fecha,         setFecha]         = useState(inicial?.fecha ?? fechaInicial ?? '');
+  const [zona,          setZona]          = useState(inicial?.zona ?? '');
+  const [exportadora,   setExportadora]   = useState(inicial?.exportadora ?? '');
+  const [planificado,   setPlanificado]   = useState(inicial != null ? String(getPlan(inicial)) : '');
+  const [inspeccionado, setInspeccionado] = useState(
+    inicial != null && getInsp(inicial) != null ? String(getInsp(inicial)) : ''
+  );
+  const [fincas,        setFincas]        = useState(inicial?.fincas ?? []);
+  const [tecnicos,      setTecnicos]      = useState(inicial?.tecnicos ?? []);
+  const [motivo,        setMotivo]        = useState(inicial?.motivo ?? '');
+  const [buscarFinca,   setBuscarFinca]   = useState('');
+
+  // Agregar nuevo técnico inline
+  const [mostrarNuevoTec, setMostrarNuevoTec] = useState(false);
+  const [nuevoTecNombre,  setNuevoTecNombre]  = useState('');
+
+  // Agregar nueva finca inline
+  const [mostrarNuevaFinca, setMostrarNuevaFinca] = useState(false);
+  const [nuevaFincaNombre,  setNuevaFincaNombre]  = useState('');
+
+  // Derivados de fecha
+  const semanaCalc = fecha ? fechaAISOWeek(fecha) : '';
+  const diaCalc    = fecha ? getDia(fecha) : '';
+
+  // Derivados de cantidades
+  const planNum = parseFloat(planificado) || 0;
+  const inspNum = parseFloat(inspeccionado) || 0;
+  const ambos   = planificado !== '' && inspeccionado !== '';
+  const hayDiff = ambos && planNum !== inspNum;
+  const diffNum = +(planNum - inspNum).toFixed(2);
+
+  // Listas derivadas de config
   const exportadoras    = zona ? Object.keys(config.fincas[zona] || {}) : [];
   const fincasDeExp     = zona && exportadora ? (config.fincas[zona]?.[exportadora] || []) : [];
   const fincasFiltradas = fincasDeExp.filter(f => f.toLowerCase().includes(buscarFinca.toLowerCase()));
 
-  const toggleFinca   = f => setFincas(prev => prev.includes(f) ? prev.filter(x=>x!==f) : [...prev,f]);
+  const toggleFinca = f =>
+    setFincas(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+
   const toggleTecnico = t => {
-    if (tecnicos.includes(t)) { setTecnicos(prev => prev.filter(x=>x!==t)); return; }
-    if (tecnicos.length >= 2) { alert('Máximo 2 técnicos'); return; }
+    if (tecnicos.includes(t)) { setTecnicos(prev => prev.filter(x => x !== t)); return; }
+    if (tecnicos.length >= 2) { alert('Máximo 2 técnicos por registro.'); return; }
     setTecnicos(prev => [...prev, t]);
   };
 
-  const handleZona = v => { setZona(v); setExportadora(''); setFincas([]); setBuscarFinca(''); };
-  const handleExp  = v => { setExportadora(v); setFincas([]); setBuscarFinca(''); };
+  const handleZona = v => { setZona(v); setExportadora(''); setFincas([]); setBuscarFinca(''); setMostrarNuevaFinca(false); };
+  const handleExp  = v => { setExportadora(v); setFincas([]); setBuscarFinca(''); setMostrarNuevaFinca(false); };
+
+  const confirmarNuevoTecnico = async () => {
+    const nombre = nuevoTecNombre.trim().toUpperCase();
+    if (!nombre) return;
+    if (config.tecnicos.includes(nombre)) { alert('Ese técnico ya existe en la lista.'); return; }
+    const nuevoConfig = { ...config, tecnicos: [...config.tecnicos, nombre] };
+    setConfig(nuevoConfig);
+    setNuevoTecNombre('');
+    setMostrarNuevoTec(false);
+    setTecnicos(prev => prev.length < 2 ? [...prev, nombre] : prev);
+    await saveConfig(nuevoConfig).catch(console.error);
+  };
+
+  const confirmarNuevaFinca = async () => {
+    const nombre = nuevaFincaNombre.trim();
+    if (!nombre || !zona || !exportadora) return;
+    const existentes = config.fincas[zona]?.[exportadora] || [];
+    if (existentes.includes(nombre)) { alert('Esa finca ya existe en esta exportadora.'); return; }
+    const nuevoConfig = {
+      ...config,
+      fincas: {
+        ...config.fincas,
+        [zona]: { ...config.fincas[zona], [exportadora]: [...existentes, nombre] }
+      }
+    };
+    setConfig(nuevoConfig);
+    setNuevaFincaNombre('');
+    setMostrarNuevaFinca(false);
+    setFincas(prev => [...prev, nombre]);
+    await saveConfig(nuevoConfig).catch(console.error);
+  };
 
   const submit = () => {
-    if (!semana || !zona || !exportadora || planificado==='' || inspeccionado==='' || fincas.length===0 || tecnicos.length===0) {
-      alert('Completa todos los campos obligatorios (semana, zona, exportadora, cantidades, fincas y técnicos).');
+    if (!fecha || !zona || !exportadora || planificado === '' || fincas.length === 0 || tecnicos.length === 0) {
+      alert('Completa los campos obligatorios: fecha, zona, exportadora, planificado, fincas y técnicos.');
       return;
     }
-    if (hayDiff && !motivo.trim()) {
-      alert('Hay diferencia entre planificado e inspeccionado. Escribe el motivo antes de guardar.');
+    const inspValor = inspeccionado === '' ? null : inspNum;
+    if (inspValor != null && hayDiff && !motivo.trim()) {
+      alert('Hay diferencia entre planificado e inspeccionado. Escribe el motivo.');
       return;
     }
-    const registro = {
-      id: inicial?.id ?? Math.random().toString(36).slice(2),
-      semana, zona, exportadora,
-      planificado: planNum,
-      inspeccionado: inspNum,
-      fincas, tecnicos,
-      motivo: hayDiff ? motivo.trim() : '',
-      timestamp: inicial?.timestamp ?? new Date().toISOString()
-    };
-    onGuardar(registro);
+    onGuardar({
+      id:           inicial?.id ?? Math.random().toString(36).slice(2),
+      fecha,
+      semana:       semanaCalc,
+      dia:          diaCalc,
+      zona,
+      exportadora,
+      planificado:  planNum,
+      inspeccionado: inspValor,
+      fincas,
+      tecnicos,
+      motivo:       (inspValor != null && hayDiff) ? motivo.trim() : '',
+      timestamp:    inicial?.timestamp ?? new Date().toISOString()
+    });
   };
 
   return (
     <div>
-      {/* Semana */}
+      {/* Fecha */}
       <div className="form-group">
-        <label>Semana</label>
-        <input type="week" value={semana} onChange={e=>setSemana(e.target.value)} disabled={!!semanaFija && !esEdicion} />
+        <label>Fecha del proceso</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} style={{ maxWidth: 200 }} />
+          {diaCalc && (
+            <span className="badge badge-blue" style={{ fontSize: 12, padding: '4px 12px' }}>
+              {diaCalc} · {getWeekLabel(semanaCalc)}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Zona + Exportadora */}
       <div className="form-row">
         <div className="form-group">
           <label>Zona</label>
-          <select value={zona} onChange={e=>handleZona(e.target.value)}>
+          <select value={zona} onChange={e => handleZona(e.target.value)}>
             <option value="">-- Selecciona zona --</option>
-            {config.zonas.map(z=><option key={z} value={z}>{z}</option>)}
+            {config.zonas.map(z => <option key={z} value={z}>{z}</option>)}
           </select>
         </div>
         {zona && (
           <div className="form-group">
             <label>Exportadora</label>
-            <select value={exportadora} onChange={e=>handleExp(e.target.value)}>
+            <select value={exportadora} onChange={e => handleExp(e.target.value)}>
               <option value="">-- Selecciona --</option>
-              {exportadoras.map(e=><option key={e} value={e}>{e}</option>)}
+              {exportadoras.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
           </div>
         )}
@@ -210,20 +342,20 @@ function FormularioPlan({ config, inicial, esEdicion, onGuardar, onCancelar, sem
         <div className="form-group">
           <label>Planificado</label>
           <input type="number" step="0.5" min="0" placeholder="0"
-            value={planificado} onChange={e=>setPlanificado(e.target.value)} />
+            value={planificado} onChange={e => setPlanificado(e.target.value)} />
         </div>
         <div className="form-group">
-          <label>Inspeccionado</label>
-          <input type="number" step="0.5" min="0" placeholder="0"
-            value={inspeccionado} onChange={e=>setInspeccionado(e.target.value)} />
+          <label>Inspeccionado <span className="label-opt">(dejar vacío si aún no se inspecciona)</span></label>
+          <input type="number" step="0.5" min="0" placeholder="— pendiente"
+            value={inspeccionado} onChange={e => setInspeccionado(e.target.value)} />
         </div>
       </div>
 
       {/* Banner diferencia */}
-      {ambosOk && (
+      {ambos && (
         <div className={`diff-banner ${hayDiff ? 'error' : 'ok'}`}>
           {hayDiff
-            ? `⚠ Diferencia de ${Math.abs(diffNum)} contenedor${Math.abs(diffNum)===1?'':'es'} — se requiere motivo`
+            ? `⚠ Diferencia de ${Math.abs(diffNum)} contenedor${Math.abs(diffNum) === 1 ? '' : 'es'} — se requiere motivo`
             : '✓ Planificado e inspeccionado coinciden'}
         </div>
       )}
@@ -231,85 +363,116 @@ function FormularioPlan({ config, inicial, esEdicion, onGuardar, onCancelar, sem
       {/* Fincas */}
       {exportadora && (
         <div className="form-group">
-          <label>Fincas ({fincas.length} seleccionadas)</label>
+          <label>Fincas <span className="label-opt">({fincas.length} seleccionadas)</span></label>
           <input type="text" placeholder="Buscar finca..." value={buscarFinca}
-            onChange={e=>setBuscarFinca(e.target.value)} style={{marginBottom:6}} />
+            onChange={e => setBuscarFinca(e.target.value)} style={{ marginBottom: 6 }} />
           <div className="checkbox-list">
             {fincasFiltradas.length === 0
-              ? <div style={{color:'#94a3b8',padding:'6px 4px',fontSize:12}}>Sin resultados</div>
-              : fincasFiltradas.map(f=>(
-                  <div key={f} className="checkbox-item">
-                    <input type="checkbox" id={`finca-${f}-${esEdicion?'e':'n'}`}
-                      checked={fincas.includes(f)} onChange={()=>toggleFinca(f)} />
-                    <label htmlFor={`finca-${f}-${esEdicion?'e':'n'}`}>{f}</label>
-                  </div>
-                ))
+              ? <div style={{ color: '#94a3b8', padding: '6px 4px', fontSize: 12 }}>Sin resultados</div>
+              : fincasFiltradas.map(f => (
+                <div key={f} className="checkbox-item">
+                  <input type="checkbox" id={`finca-${esEdicion ? 'e' : 'n'}-${f}`}
+                    checked={fincas.includes(f)} onChange={() => toggleFinca(f)} />
+                  <label htmlFor={`finca-${esEdicion ? 'e' : 'n'}-${f}`}>{f}</label>
+                </div>
+              ))
             }
           </div>
           {fincas.length > 0 && (
-            <div style={{marginTop:8}}>
-              {fincas.map(f=><span key={f} className="chip">{f}</span>)}
+            <div style={{ marginTop: 8 }}>
+              {fincas.map(f => <span key={f} className="chip">{f}</span>)}
             </div>
           )}
+
+          {/* Nueva finca inline */}
+          {!mostrarNuevaFinca
+            ? <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => setMostrarNuevaFinca(true)}>
+                + Nueva finca en {exportadora}
+              </button>
+            : (
+              <div className="inline-add">
+                <input type="text" placeholder="Nombre de la nueva finca"
+                  value={nuevaFincaNombre} onChange={e => setNuevaFincaNombre(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && confirmarNuevaFinca()} />
+                <button className="btn sm amber" onClick={confirmarNuevaFinca}>Agregar</button>
+                <button className="btn sm" onClick={() => { setMostrarNuevaFinca(false); setNuevaFincaNombre(''); }}>✕</button>
+              </div>
+            )
+          }
         </div>
       )}
 
       {/* Técnicos */}
       <div className="form-group">
-        <label>Técnicos ({tecnicos.length}/2)</label>
-        <select onChange={e=>{ if(e.target.value) toggleTecnico(e.target.value); e.target.value=''; }}>
-          <option value="">Agregar técnico...</option>
-          {config.tecnicos.filter(t=>!tecnicos.includes(t)).map(t=><option key={t} value={t}>{t}</option>)}
+        <label>Técnicos <span className="label-opt">({tecnicos.length}/2)</span></label>
+        <select onChange={e => { if (e.target.value) toggleTecnico(e.target.value); e.target.value = ''; }}>
+          <option value="">Seleccionar técnico...</option>
+          {config.tecnicos.filter(t => !tecnicos.includes(t)).map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         {tecnicos.length > 0 && (
-          <div style={{marginTop:8}}>
-            {tecnicos.map(t=>(
-              <span key={t} className="chip remove" onClick={()=>setTecnicos(prev=>prev.filter(x=>x!==t))}>
+          <div style={{ marginTop: 8 }}>
+            {tecnicos.map(t => (
+              <span key={t} className="chip remove" onClick={() => setTecnicos(prev => prev.filter(x => x !== t))}>
                 {t} ✕
               </span>
             ))}
           </div>
         )}
+
+        {/* Nuevo técnico inline */}
+        {!mostrarNuevoTec
+          ? <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => setMostrarNuevoTec(true)}>
+              + Nuevo técnico
+            </button>
+          : (
+            <div className="inline-add">
+              <input type="text" placeholder="NOMBRE COMPLETO EN MAYÚSCULAS"
+                value={nuevoTecNombre} onChange={e => setNuevoTecNombre(e.target.value.toUpperCase())}
+                onKeyDown={e => e.key === 'Enter' && confirmarNuevoTecnico()} />
+              <button className="btn sm amber" onClick={confirmarNuevoTecnico}>Agregar</button>
+              <button className="btn sm" onClick={() => { setMostrarNuevoTec(false); setNuevoTecNombre(''); }}>✕</button>
+            </div>
+          )
+        }
       </div>
 
-      {/* Motivo — solo cuando hay diferencia */}
-      {hayDiff && (
+      {/* Motivo — solo si hay diferencia con inspeccionado */}
+      {hayDiff && inspeccionado !== '' && (
         <div className="form-group">
-          <label style={{color:'#dc2626'}}>Motivo de la diferencia *</label>
-          <textarea rows={3} placeholder="Explica por qué no se inspeccionó la cantidad planificada..."
-            value={motivo} onChange={e=>setMotivo(e.target.value)} />
+          <label style={{ color: '#dc2626' }}>Motivo de la diferencia *</label>
+          <textarea rows={3}
+            placeholder="Explica por qué no se inspeccionó la cantidad planificada..."
+            value={motivo} onChange={e => setMotivo(e.target.value)} />
         </div>
       )}
 
-      {/* Botones */}
-      <div style={{display:'flex',gap:10,marginTop:4}}>
-        <button className="btn amber" onClick={submit} style={{flex:1,padding:'10px 0',justifyContent:'center'}}>
+      {/* Acciones */}
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <button className="btn amber" onClick={submit}
+          style={{ flex: 1, padding: '10px', justifyContent: 'center' }}>
           {esEdicion ? '✓ GUARDAR CAMBIOS' : '✓ AGREGAR'}
         </button>
         {onCancelar && (
-          <button className="btn" onClick={onCancelar} style={{padding:'10px 20px'}}>
-            Cancelar
-          </button>
+          <button className="btn" onClick={onCancelar} style={{ padding: '10px 20px' }}>Cancelar</button>
         )}
       </div>
     </div>
   );
 }
 
-// ── Modal de edición ────────────────────────────────────────────────────────
-function ModalEditar({ plan, config, onGuardar, onCerrar }) {
+// ─── Modal de edición ─────────────────────────────────────────────────────────
+function ModalEditar({ plan, config, setConfig, onGuardar, onCerrar }) {
   return (
     <div className="modal-overlay" onClick={onCerrar}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">✏️ Editar registro</div>
           <button className="btn sm" onClick={onCerrar}>✕ Cerrar</button>
         </div>
         <FormularioPlan
-          config={config}
-          inicial={plan}
-          esEdicion={true}
-          onGuardar={reg=>{ onGuardar(reg); onCerrar(); }}
+          config={config} setConfig={setConfig}
+          inicial={plan} esEdicion={true}
+          onGuardar={reg => { onGuardar(reg); onCerrar(); }}
           onCancelar={onCerrar}
         />
       </div>
@@ -317,81 +480,80 @@ function ModalEditar({ plan, config, onGuardar, onCerrar }) {
   );
 }
 
-// ── App principal ───────────────────────────────────────────────────────────
+// ─── App principal ────────────────────────────────────────────────────────────
 function App() {
-  const [tab,            setTab]            = useState('agregar');
-  const [config,         setConfig]         = useState(null);
-  const [planes,         setPlanes]         = useState([]);
-  const [loading,        setLoading]        = useState(true);
-  const [saving,         setSaving]         = useState(false);
-  const [editando,       setEditando]       = useState(null);
-  const [filterSemana,   setFilterSemana]   = useState('');
-  const [expanded,       setExpanded]       = useState({});
-  const [semanaActual,   setSemanaActual]   = useState('');  // persiste entre entradas del formulario
+  const [tab,          setTab]          = useState('agregar');
+  const [config,       setConfig]       = useState(null);
+  const [planes,       setPlanes]       = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [saving,       setSaving]       = useState(false);
+  const [editando,     setEditando]     = useState(null);
+  const [filterSemana, setFilterSemana] = useState('');
+  const [expanded,     setExpanded]     = useState({});
+  const [ultimaFecha,  setUltimaFecha]  = useState(''); // recuerda la última fecha usada
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/config').then(r=>r.json()),
-      fetch('/api/contenedores').then(r=>r.json())
+      fetch('/api/config').then(r => r.json()),
+      fetch('/api/contenedores').then(r => r.json())
     ]).then(([cfg, cont]) => {
       setConfig(cfg);
       setPlanes(cont.contenedores || []);
       setLoading(false);
-    }).catch(e=>{ console.error(e); setLoading(false); });
+    }).catch(e => { console.error(e); setLoading(false); });
   }, []);
 
   const persistir = async (nuevos) => {
     setSaving(true);
-    try {
-      await fetch('/api/contenedores', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({contenedores: nuevos})
-      });
-    } catch(e) { console.error('Error guardando:', e); }
+    try { await saveContenedores(nuevos); } catch (e) { console.error(e); }
     setSaving(false);
   };
 
-  const agregar = (registro) => {
-    setSemanaActual(registro.semana);
-    const nuevos = [...planes, registro];
+  const agregar = reg => {
+    setUltimaFecha(reg.fecha);
+    const nuevos = [...planes, reg];
     setPlanes(nuevos);
     persistir(nuevos);
   };
 
-  const actualizar = (actualizado) => {
-    const nuevos = planes.map(p => p.id===actualizado.id ? actualizado : p);
+  const actualizar = reg => {
+    const nuevos = planes.map(p => p.id === reg.id ? reg : p);
     setPlanes(nuevos);
     persistir(nuevos);
   };
 
-  const eliminar = (id) => {
-    if (!confirm('¿Seguro que quieres eliminar este registro?')) return;
-    const nuevos = planes.filter(p=>p.id!==id);
+  const eliminar = id => {
+    if (!confirm('¿Eliminar este registro?')) return;
+    const nuevos = planes.filter(p => p.id !== id);
     setPlanes(nuevos);
     persistir(nuevos);
   };
 
-  const toggleExpand = id => setExpanded(prev=>({...prev,[id]:!prev[id]}));
+  const toggleExpand = id => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
-  // ── Datos del resumen ────────────────────────────────────────────────────
-  const semanas  = [...new Set(planes.map(p=>p.semana))].sort((a,b)=>b.localeCompare(a));
-  const filtrado = filterSemana ? planes.filter(p=>p.semana===filterSemana) : planes;
+  // ── Resumen ──────────────────────────────────────────────────────────────
+  const semanas  = [...new Set(planes.map(p => p.semana).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+  const filtrado = filterSemana ? planes.filter(p => p.semana === filterSemana) : planes;
 
-  const totalPlan  = filtrado.reduce((s,p)=>s+getPlan(p), 0);
-  const totalInsp  = filtrado.reduce((s,p)=>s+getInsp(p), 0);
-  const totalDiff  = +(totalPlan - totalInsp).toFixed(2);
+  const totalPlan  = filtrado.reduce((s, p) => s + getPlan(p), 0);
+  const totalInsp  = filtrado.filter(p => !isPending(p)).reduce((s, p) => s + getInsp(p), 0);
+  const pendientes = filtrado.filter(isPending).length;
   const conError   = filtrado.filter(hasError).length;
 
-  // Agrupar por zona manteniendo el orden de inserción
-  const porZona = {};
-  filtrado.forEach(p=>{
-    if (!porZona[p.zona]) porZona[p.zona] = [];
-    porZona[p.zona].push(p);
+  // Agrupar por día, ordenar Lunes→Domingo
+  const porDia = {};
+  filtrado.forEach(p => {
+    const dia = p.dia || (p.fecha ? getDia(p.fecha) : 'Sin fecha');
+    if (!porDia[dia]) porDia[dia] = [];
+    porDia[dia].push(p);
   });
+  const diasOrdenados = [
+    ...DIA_ORDEN.filter(d => porDia[d]),
+    ...(porDia['Sin fecha'] ? ['Sin fecha'] : [])
+  ];
 
   if (loading) return (
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'#64748b',fontSize:15}}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b', fontSize: 15 }}>
       Cargando datos...
     </div>
   );
@@ -401,29 +563,30 @@ function App() {
       {/* ── Topbar ── */}
       <div className="topbar">
         <div className="topbar-logo">📦 Planificación <span>Banano</span></div>
-        <button className={`nav-tab ${tab==='agregar'?'active':''}`} onClick={()=>setTab('agregar')}>➕ Agregar</button>
-        <button className={`nav-tab ${tab==='resumen'?'active':''}`} onClick={()=>setTab('resumen')}>📊 Resumen</button>
+        <button className={`nav-tab ${tab === 'agregar' ? 'active' : ''}`} onClick={() => setTab('agregar')}>➕ Agregar</button>
+        <button className={`nav-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
         {saving && <span className="saving-dot">● Guardando...</span>}
       </div>
 
       <div className="main">
 
-        {/* ═══════════════ TAB AGREGAR ═══════════════ */}
-        {tab==='agregar' && (
+        {/* ════════════════ TAB AGREGAR ════════════════ */}
+        {tab === 'agregar' && (
           <div className="card">
-            <div className="card-title">➕ Nueva planificación</div>
-            <FormularioPlan
-              config={config}
-              inicial={null}
-              esEdicion={false}
-              semanaFija={semanaActual || undefined}
-              onGuardar={reg=>{ agregar(reg); }}
-            />
+            <div className="card-body">
+              <div className="card-title">➕ Nueva planificación</div>
+              <FormularioPlan
+                config={config} setConfig={setConfig}
+                inicial={null} esEdicion={false}
+                fechaInicial={ultimaFecha}
+                onGuardar={agregar}
+              />
+            </div>
           </div>
         )}
 
-        {/* ═══════════════ TAB RESUMEN ═══════════════ */}
-        {tab==='resumen' && (
+        {/* ════════════════ TAB RESUMEN ════════════════ */}
+        {tab === 'resumen' && (
           <div>
             {/* Stats */}
             <div className="stat-grid">
@@ -439,84 +602,99 @@ function App() {
                 <div className="stat-val">{totalInsp.toFixed(1)}</div>
                 <div className="stat-label">Total Inspeccionado</div>
               </div>
-              <div className={`stat ${conError>0?'error':''}`}>
+              <div className={`stat ${pendientes > 0 ? 'pending' : ''}`}>
+                <div className="stat-val">{pendientes}</div>
+                <div className="stat-label">Pendientes</div>
+              </div>
+              <div className={`stat ${conError > 0 ? 'error' : ''}`}>
                 <div className="stat-val">{conError}</div>
-                <div className="stat-label">Con diferencias</div>
+                <div className="stat-label">Con errores</div>
               </div>
             </div>
 
-            {/* Filtro de semana */}
-            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
-              <span style={{fontSize:12,fontWeight:600,color:'#64748b'}}>Semana:</span>
-              <select value={filterSemana} onChange={e=>setFilterSemana(e.target.value)} style={{maxWidth:220}}>
+            {/* Filtro semana */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>Semana:</span>
+              <select value={filterSemana} onChange={e => setFilterSemana(e.target.value)} style={{ maxWidth: 360 }}>
                 <option value="">Todas las semanas</option>
-                {semanas.map(s=><option key={s} value={s}>{s}</option>)}
+                {semanas.map(s => <option key={s} value={s}>{getWeekLabel(s)}</option>)}
               </select>
             </div>
 
-            {/* Sin datos */}
-            {filtrado.length===0 && (
-              <div className="card" style={{textAlign:'center',color:'#94a3b8',padding:48,fontSize:14}}>
-                Sin registros para mostrar
+            {filtrado.length === 0 && (
+              <div className="card">
+                <div className="empty-state">Sin registros para mostrar</div>
               </div>
             )}
 
-            {/* Tabla por zona */}
-            {Object.entries(porZona).map(([zona, registros])=>{
-              const zPlan = registros.reduce((s,p)=>s+getPlan(p),0);
-              const zInsp = registros.reduce((s,p)=>s+getInsp(p),0);
-              const zDiff = +(zPlan-zInsp).toFixed(2);
-              const zErr  = registros.filter(hasError).length;
+            {/* ── Tabla por día ── */}
+            {diasOrdenados.map(dia => {
+              const regs  = porDia[dia];
+              const dPlan = regs.reduce((s, p) => s + getPlan(p), 0);
+              const dInsp = regs.filter(p => !isPending(p)).reduce((s, p) => s + getInsp(p), 0);
+              const dDiff = +(dPlan - dInsp).toFixed(2);
+              const dErr  = regs.filter(hasError).length;
+              const dPend = regs.filter(isPending).length;
+
               return (
-                <div key={zona} className="card" style={{marginBottom:16,padding:'16px 0 0'}}>
-                  <div className="zone-header" style={{padding:'0 20px',marginBottom:12}}>
-                    <div className="zone-name">{zona}</div>
-                    {zErr>0
-                      ? <span className="badge badge-error">⚠ {zErr} con diferencia</span>
-                      : <span className="badge badge-ok">✓ Sin errores</span>
-                    }
+                <div key={dia} className="card" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
+                  {/* Cabecera del día */}
+                  <div className="day-header">
+                    <div className="day-name">{dia}</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {dPend > 0  && <span className="badge badge-pending">⏳ {dPend} pendiente{dPend > 1 ? 's' : ''}</span>}
+                      {dErr > 0   && <span className="badge badge-error">⚠ {dErr} error{dErr > 1 ? 'es' : ''}</span>}
+                      {dErr === 0 && dPend === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
+                    </div>
                   </div>
+
                   <table>
                     <thead>
                       <tr>
+                        <th>Zona</th>
                         <th>Exportadora</th>
-                        <th style={{textAlign:'right'}}>Planif.</th>
-                        <th style={{textAlign:'right'}}>Inspec.</th>
-                        <th style={{textAlign:'right'}}>Dif.</th>
+                        <th style={{ textAlign: 'right' }}>Planif.</th>
+                        <th style={{ textAlign: 'right' }}>Inspec.</th>
+                        <th style={{ textAlign: 'right' }}>Dif.</th>
                         <th>Técnicos</th>
                         <th>Estado</th>
-                        <th style={{width:110}}>Acciones</th>
+                        <th style={{ width: 115 }}>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {registros.map(p=>{
-                        const diff = getDiff(p);
-                        const error = diff !== 0;
+                      {regs.map(p => {
+                        const diff    = getDiff(p);
+                        const pending = isPending(p);
+                        const error   = hasError(p);
+                        const rowCls  = pending ? 'row-pending' : (error ? 'row-error' : 'row-ok');
                         return (
                           <React.Fragment key={p.id}>
-                            {/* Fila principal */}
-                            <tr className={error?'row-error':'row-ok'}>
-                              <td style={{fontWeight:600}}>{p.exportadora}</td>
-                              <td style={{textAlign:'right'}}>{getPlan(p).toFixed(1)}</td>
-                              <td style={{textAlign:'right'}}>{getInsp(p).toFixed(1)}</td>
-                              <td style={{textAlign:'right',fontWeight:700,color:error?'#dc2626':'#16a34a'}}>
-                                {error ? (diff>0?`-${diff.toFixed(1)}`:`+${Math.abs(diff).toFixed(1)}`) : '✓'}
+                            <tr className={rowCls}>
+                              <td style={{ fontSize: 11, color: '#64748b' }}>{p.zona}</td>
+                              <td style={{ fontWeight: 600 }}>{p.exportadora}</td>
+                              <td style={{ textAlign: 'right' }}>{getPlan(p).toFixed(1)}</td>
+                              <td style={{ textAlign: 'right', color: pending ? '#94a3b8' : 'inherit' }}>
+                                {pending ? '—' : getInsp(p).toFixed(1)}
                               </td>
-                              <td style={{fontSize:11,color:'#475569',maxWidth:200}}>
+                              <td style={{ textAlign: 'right', fontWeight: 700,
+                                           color: pending ? '#94a3b8' : error ? '#dc2626' : '#16a34a' }}>
+                                {pending ? '—' : (error ? `-${Math.abs(diff).toFixed(1)}` : '✓')}
+                              </td>
+                              <td style={{ fontSize: 11, color: '#475569', maxWidth: 180 }}>
                                 {p.tecnicos.join(' / ')}
                               </td>
                               <td>
-                                <span className={`badge ${error?'badge-error':'badge-ok'}`}>
-                                  {error ? '⚠ Error' : '✓ OK'}
-                                </span>
+                                {pending && <span className="badge badge-pending">⏳ Pendiente</span>}
+                                {error   && <span className="badge badge-error">⚠ Error</span>}
+                                {isOK(p) && <span className="badge badge-ok">✓ OK</span>}
                               </td>
                               <td>
                                 <div className="actions">
-                                  <button className="btn sm" title="Ver detalles" onClick={()=>toggleExpand(p.id)}>
-                                    {expanded[p.id]?'▼':'▶'}
+                                  <button className="btn sm" title="Detalles" onClick={() => toggleExpand(p.id)}>
+                                    {expanded[p.id] ? '▼' : '▶'}
                                   </button>
-                                  <button className="btn sm" title="Editar" onClick={()=>setEditando(p)}>✏️</button>
-                                  <button className="btn sm danger" title="Eliminar" onClick={()=>eliminar(p.id)}>✕</button>
+                                  <button className="btn sm" title="Editar" onClick={() => setEditando(p)}>✏️</button>
+                                  <button className="btn sm danger" title="Eliminar" onClick={() => eliminar(p.id)}>✕</button>
                                 </div>
                               </td>
                             </tr>
@@ -524,21 +702,28 @@ function App() {
                             {/* Fila de detalle expandible */}
                             {expanded[p.id] && (
                               <tr className="row-detail">
-                                <td colSpan={7} style={{padding:'12px 20px'}}>
-                                  <div style={{fontSize:12,marginBottom:4}}>
-                                    <strong>Semana:</strong> {p.semana}
-                                  </div>
-                                  <div style={{fontSize:12,marginBottom:error&&p.motivo?8:0}}>
+                                <td colSpan={8} style={{ padding: '12px 20px' }}>
+                                  {p.fecha && (
+                                    <div style={{ fontSize: 12, marginBottom: 4 }}>
+                                      <strong>Fecha:</strong> {formatFechaCorta(p.fecha)}
+                                    </div>
+                                  )}
+                                  <div style={{ fontSize: 12 }}>
                                     <strong>Fincas:</strong> {p.fincas.join(', ')}
                                   </div>
                                   {error && p.motivo && (
-                                    <div style={{padding:'8px 12px',background:'#fee2e2',borderRadius:6,color:'#dc2626',fontSize:12,marginTop:6}}>
+                                    <div style={{ padding: '8px 12px', background: '#fee2e2', borderRadius: 6, color: '#dc2626', fontSize: 12, marginTop: 8 }}>
                                       <strong>Motivo:</strong> {p.motivo}
                                     </div>
                                   )}
                                   {error && !p.motivo && (
-                                    <div style={{padding:'6px 12px',background:'#fef3c7',borderRadius:6,color:'#d97706',fontSize:12,marginTop:6}}>
-                                      ⚠ Sin motivo registrado
+                                    <div style={{ padding: '6px 12px', background: '#fef3c7', borderRadius: 6, color: '#b45309', fontSize: 12, marginTop: 8 }}>
+                                      ⚠ Sin motivo registrado — usa ✏️ para añadirlo
+                                    </div>
+                                  )}
+                                  {pending && (
+                                    <div style={{ padding: '6px 12px', background: '#fffbeb', borderRadius: 6, color: '#b45309', fontSize: 12, marginTop: 8 }}>
+                                      ⏳ Inspeccionado aún no registrado — usa ✏️ para completar
                                     </div>
                                   )}
                                 </td>
@@ -548,13 +733,13 @@ function App() {
                         );
                       })}
 
-                      {/* Fila de totales por zona */}
+                      {/* Total del día */}
                       <tr className="row-total">
-                        <td>TOTAL ZONA</td>
-                        <td style={{textAlign:'right'}}>{zPlan.toFixed(1)}</td>
-                        <td style={{textAlign:'right'}}>{zInsp.toFixed(1)}</td>
-                        <td style={{textAlign:'right',color:zDiff!==0?'#dc2626':'#16a34a'}}>
-                          {zDiff!==0 ? `-${Math.abs(zDiff).toFixed(1)}` : '✓'}
+                        <td colSpan={2} style={{ fontSize: 11 }}>TOTAL {dia.toUpperCase()}</td>
+                        <td style={{ textAlign: 'right' }}>{dPlan.toFixed(1)}</td>
+                        <td style={{ textAlign: 'right' }}>{dInsp > 0 ? dInsp.toFixed(1) : '—'}</td>
+                        <td style={{ textAlign: 'right', color: dDiff !== 0 && dInsp > 0 ? '#dc2626' : '#16a34a' }}>
+                          {dInsp > 0 ? (dDiff !== 0 ? `-${Math.abs(dDiff).toFixed(1)}` : '✓') : '—'}
                         </td>
                         <td colSpan={3}></td>
                       </tr>
@@ -565,7 +750,7 @@ function App() {
             })}
 
             {/* Gran total */}
-            {filtrado.length>0 && (
+            {filtrado.length > 0 && (
               <div className="grand-total">
                 <div>
                   <div className="val">{totalPlan.toFixed(1)}</div>
@@ -576,8 +761,8 @@ function App() {
                   <div className="lbl">Total Inspeccionado</div>
                 </div>
                 <div>
-                  <div className="val" style={{color:totalDiff!==0?'#f87171':'#4ade80'}}>
-                    {totalDiff!==0 ? `-${Math.abs(totalDiff).toFixed(1)}` : '✓'}
+                  <div className="val" style={{ color: (totalPlan - totalInsp) !== 0 ? '#f87171' : '#4ade80' }}>
+                    {(totalPlan - totalInsp) !== 0 ? `-${Math.abs(totalPlan - totalInsp).toFixed(1)}` : '✓'}
                   </div>
                   <div className="lbl">Diferencia Total</div>
                 </div>
@@ -592,8 +777,9 @@ function App() {
         <ModalEditar
           plan={editando}
           config={config}
+          setConfig={setConfig}
           onGuardar={actualizar}
-          onCerrar={()=>setEditando(null)}
+          onCerrar={() => setEditando(null)}
         />
       )}
     </div>
