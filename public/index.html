@@ -26,6 +26,370 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; backgrou
 .btn.sm { padding: 4px 9px; font-size: 11px; }
 .btn.danger { color: #dc2626; border-color: #fca5a5; }
 .btn.danger:hover { background: #fee2e2; }
+select, input, textarea { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; font-family: inherit; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #0f2040; box-shadow: 0 0 0 3px rgba(15,32,64,.08); }
+input[type=number] { max-width: 120px; }
+.form-group { margin-bottom: 12px; }
+.form-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 5px; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }
+.stat-val { font-size: 24px; font-weight: 700; color: #0f2040; }
+.stat-label { font-size: 10px; color: #64748b; margin-top: 4px; }
+.chip { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 4px 8px; font-size: 10px; color: #1e40af; font-weight: 500; margin-right: 4px; margin-bottom: 4px; }
+.chip.remove { cursor: pointer; }
+.chip.remove:hover { background: #dbeafe; }
+.checkbox-list { max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; }
+.checkbox-item { display: flex; align-items: center; gap: 8px; padding: 4px; cursor: pointer; }
+.checkbox-item:hover { background: #f8fafc; border-radius: 4px; }
+.checkbox-item input { cursor: pointer; }
+.checkbox-item label { cursor: pointer; flex: 1; margin: 0; }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; font-weight: 600; color: #0f2040; font-size: 12px; }
+tr:hover { background: #f8fafc; }
+.expand-row { background: #f8fafc; }
+.expand-content { padding: 16px; }
+.detail-section { margin-bottom: 12px; }
+.detail-section strong { color: #0f2040; display: block; margin-bottom: 4px; font-size: 12px; }
+.detail-text { font-size: 12px; color: #64748b; line-height: 1.4; }
+.tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+.tag-ok { background: #dcfce7; color: #166534; }
+.tag-bad { background: #fee2e2; color: #991b1b; }
+.filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function getCurrentWeek() {
+  const week = getWeekNumber(new Date());
+  const year = new Date().getFullYear();
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+function App() {
+  const [tab, setTab] = useState('agregar');
+  const [config, setConfig] = useState(null);
+  const [planificaciones, setPlanificaciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [expandedRows, setExpandedRows] = useState({});
+  const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek());
+
+  // Formulario
+  const [formZona, setFormZona] = useState('');
+  const [formExportadora, setFormExportadora] = useState('');
+  const [formCantidad, setFormCantidad] = useState('');
+  const [formSemana, setFormSemana] = useState(getCurrentWeek());
+  const [formFincas, setFormFincas] = useState([]);
+  const [formTecnicos, setFormTecnicos] = useState([]);
+  const [formCompletado, setFormCompletado] = useState(true);
+  const [formMotivo, setFormMotivo] = useState('');
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/config').then(r => r.json()),
+      fetch('/api/contenedores').then(r => r.json())
+    ])
+    .then(([cfg, cont]) => {
+      setConfig(cfg);
+      setPlanificaciones(cont.contenedores || []);
+      setLoading(false);
+    })
+    .catch(e => { console.error(e); setLoading(false); });
+  }, []);
+
+  const guardar = async (newPlans) => {
+    setSaving(true);
+    try {
+      await fetch('/api/contenedores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contenedores: newPlans })
+      });
+    } catch(e) { console.error('Error:', e); }
+    setSaving(false);
+  };
+
+  const agregarPlanificacion = () => {
+    if (!formCantidad || !formZona || !formExportadora || formFincas.length === 0 || formTecnicos.length === 0) {
+      alert('Completa: zona, exportadora, cantidad, fincas y técnicos');
+      return;
+    }
+    const newPlan = {
+      id: Math.random().toString(36).slice(2),
+      zona: formZona,
+      exportadora: formExportadora,
+      cantidad: parseFloat(formCantidad),
+      semana: formSemana,
+      fincas: formFincas,
+      tecnicos: formTecnicos,
+      completado: formCompletado,
+      motivo: formCompletado ? '' : formMotivo,
+      timestamp: new Date().toISOString()
+    };
+    const newPlans = [...planificaciones, newPlan];
+    setPlanificaciones(newPlans);
+    guardar(newPlans);
+    setFormZona('');
+    setFormExportadora('');
+    setFormCantidad('');
+    setFormSemana(getCurrentWeek());
+    setFormFincas([]);
+    setFormTecnicos([]);
+    setFormCompletado(true);
+    setFormMotivo('');
+  };
+
+  const eliminarPlanificacion = (id) => {
+    if (confirm('¿Eliminar?')) {
+      const newPlans = planificaciones.filter(p => p.id !== id);
+      setPlanificaciones(newPlans);
+      guardar(newPlans);
+    }
+  };
+
+  const getExportadoras = (zona) => config && zona ? Object.keys(config.fincas[zona] || {}) : [];
+  const getFincas = (zona, exportadora) => config && zona && exportadora ? config.fincas[zona]?.[exportadora] || [] : [];
+  
+  const toggleFinca = (f) => setFormFincas(formFincas.includes(f) ? formFincas.filter(x => x !== f) : [...formFincas, f]);
+  const toggleTecnico = (t) => setFormTecnicos(formTecnicos.includes(t) ? formTecnicos.filter(x => x !== t) : [...formTecnicos, t]);
+
+  const toggleRow = (id) => setExpandedRows({...expandedRows, [id]: !expandedRows[id]});
+
+  // Obtener semanas únicas
+  const semanas = [...new Set(planificaciones.map(p => p.semana))].sort().reverse();
+  const plansDeltas = planificaciones.filter(p => p.semana === selectedWeek);
+
+  // Construir tabla por zona y exportadora
+  const buildTableData = () => {
+    const map = {};
+    plansDeltas.forEach(p => {
+      const key = `${p.zona}|${p.exportadora}`;
+      if (!map[key]) {
+        map[key] = {
+          zona: p.zona,
+          exportadora: p.exportadora,
+          cantidad: 0,
+          items: []
+        };
+      }
+      map[key].cantidad += p.cantidad;
+      map[key].items.push(p);
+    });
+    return Object.values(map);
+  };
+
+  if (loading) return <div style={{ padding: 24, textAlign: 'center' }}>Cargando...</div>;
+
+  const tableData = buildTableData();
+
+  return (
+    <div id="app">
+      <div className="topbar">
+        <div className="topbar-logo">📦 Planificación <span>Banano</span></div>
+        <button className={`nav-tab ${tab === 'agregar' ? 'active' : ''}`} onClick={() => setTab('agregar')}>➕ Agregar</button>
+        <button className={`nav-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
+        {saving && <span style={{ fontSize: 11, color: '#f9a825' }}>Guardando...</span>}
+      </div>
+      <div className="main">
+        {tab === 'agregar' && (
+          <div className="card">
+            <div className="card-title">➕ Agregar Planificación</div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Semana</label>
+                <input type="week" value={formSemana} onChange={e => setFormSemana(e.target.value)} style={{maxWidth: 200}}/>
+              </div>
+              <div className="form-group">
+                <label>Zona</label>
+                <select value={formZona} onChange={e => { setFormZona(e.target.value); setFormExportadora(''); setFormFincas([]); }}>
+                  <option value="">-- Selecciona --</option>
+                  {config?.zonas?.map(z => <option key={z} value={z}>{z}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Exportadora</label>
+                <select value={formExportadora} onChange={e => { setFormExportadora(e.target.value); setFormFincas([]); }}>
+                  <option value="">-- Selecciona --</option>
+                  {getExportadoras(formZona).map(e => <option key={e} value={e}>{e}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Cantidad (ej: 1, 2, 1.5)</label>
+                <input type="number" step="0.5" min="0" placeholder="1" value={formCantidad} onChange={e => setFormCantidad(e.target.value)}/>
+              </div>
+            </div>
+
+            {formExportadora && (
+              <div className="form-group">
+                <label>Fincas ({formFincas.length} seleccionadas)</label>
+                <div className="checkbox-list">
+                  {getFincas(formZona, formExportadora).map(f => (
+                    <div key={f} className="checkbox-item">
+                      <input type="checkbox" id={f} checked={formFincas.includes(f)} onChange={() => toggleFinca(f)}/>
+                      <label htmlFor={f}>{f}</label>
+                    </div>
+                  ))}
+                </div>
+                {formFincas.length > 0 && <div style={{ marginTop: 8 }}>{formFincas.map(f => <span key={f} className="chip">{f}</span>)}</div>}
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Técnicos Asignados ({formTecnicos.length})</label>
+              <select onChange={e => { if (e.target.value) toggleTecnico(e.target.value); e.target.value = ''; }}>
+                <option value="">+ Agregar técnico</option>
+                {config?.tecnicos?.filter(t => !formTecnicos.includes(t)).map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              {formTecnicos.length > 0 && <div style={{ marginTop: 8 }}>{formTecnicos.map(t => (<span key={t} className="chip remove" onClick={() => toggleTecnico(t)}>{t} ✕</span>))}</div>}
+            </div>
+
+            <div className="form-group">
+              <label>Estado</label>
+              <select value={formCompletado ? 'completo' : 'incompleto'} onChange={e => setFormCompletado(e.target.value === 'completo')}>
+                <option value="completo">✓ Completado</option>
+                <option value="incompleto">✗ Incompleto</option>
+              </select>
+            </div>
+
+            {!formCompletado && (
+              <div className="form-group">
+                <label>Motivo de no completación</label>
+                <textarea placeholder="Ej: Falta de disponibilidad de técnicos..." value={formMotivo} onChange={e => setFormMotivo(e.target.value)} style={{ minHeight: 60 }}/>
+              </div>
+            )}
+
+            <button className="btn amber" onClick={agregarPlanificacion} style={{ width: '100%', padding: '10px', fontSize: '13px' }}>✓ AGREGAR PLANIFICACIÓN</button>
+          </div>
+        )}
+
+        {tab === 'resumen' && (
+          <div>
+            <div className="card">
+              <div className="card-title">📊 Resumen de Planificaciones</div>
+              <div className="filter-bar">
+                <label style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: '#64748b' }}>Semana:</label>
+                <select value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} style={{maxWidth: 200}}>
+                  {semanas.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {tableData.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#64748b', padding: 20 }}>Sin planificaciones para esta semana</div>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Zona</th>
+                      <th>Exportadora</th>
+                      <th>Cantidad Total</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tableData.map((row, idx) => (
+                      <React.Fragment key={idx}>
+                        <tr>
+                          <td>{row.zona}</td>
+                          <td>{row.exportadora}</td>
+                          <td><strong>{row.cantidad}</strong></td>
+                          <td>
+                            <button className="btn sm primary" onClick={() => toggleRow(idx)}>
+                              {expandedRows[idx] ? '▼ Colapsar' : '▶ Detalles'}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedRows[idx] && (
+                          <tr className="expand-row">
+                            <td colSpan="4">
+                              <div className="expand-content">
+                                {row.items.map(item => (
+                                  <div key={item.id} style={{marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #e2e8f0'}}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8}}>
+                                      <div>
+                                        <div className="detail-section">
+                                          <strong>Cantidad: {item.cantidad} contenedores</strong>
+                                        </div>
+                                        <div className="detail-section">
+                                          <strong>Fincas:</strong>
+                                          <div className="detail-text">{item.fincas.join(', ')}</div>
+                                        </div>
+                                        <div className="detail-section">
+                                          <strong>Técnicos:</strong>
+                                          <div className="detail-text">{item.tecnicos.join(', ')}</div>
+                                        </div>
+                                        <div className="detail-section">
+                                          <strong>Estado:</strong>
+                                          <div><span className={`tag ${item.completado ? 'tag-ok' : 'tag-bad'}`}>{item.completado ? '✓ Completado' : `✗ ${item.motivo || 'Incompleto'}`}</span></div>
+                                        </div>
+                                      </div>
+                                      <button className="btn sm danger" onClick={() => eliminarPlanificacion(item.id)}>✕ Eliminar</button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('app'));
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planificación de Contenedores</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; background: #f5f7fa; color: #1a1a2e; }
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+.topbar { background: #0f2040; color: #fff; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.topbar-logo { font-size: 15px; font-weight: 700; margin-right: auto; white-space: nowrap; }
+.topbar-logo span { color: #f9a825; }
+.nav-tab { background: transparent; border: none; color: rgba(255,255,255,.6); padding: 0 12px; height: 56px; cursor: pointer; font-size: 12px; border-bottom: 3px solid transparent; transition: .15s; font-weight: 500; white-space: nowrap; }
+.nav-tab:hover { color: #fff; }
+.nav-tab.active { color: #fff; border-bottom-color: #f9a825; }
+.main { flex: 1; padding: 20px 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
+.card { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 16px; }
+.card-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: #0f2040; }
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; cursor: pointer; font-size: 12px; font-weight: 500; transition: .12s; }
+.btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+.btn.primary { background: #0f2040; color: #fff; border: none; }
+.btn.primary:hover { background: #1a3560; }
+.btn.amber { background: #f9a825; color: #1a1a2e; border: none; font-weight: 600; }
+.btn.amber:hover { background: #e09720; }
+.btn.sm { padding: 4px 9px; font-size: 11px; }
+.btn.danger { color: #dc2626; border-color: #fca5a5; }
+.btn.danger:hover { background: #fee2e2; }
 select, input, textarea { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: #0f2040; box-shadow: 0 0 0 3px rgba(15,32,64,.08); }
 input[type=number] { max-width: 120px; }
