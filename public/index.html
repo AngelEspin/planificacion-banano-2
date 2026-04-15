@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -8,48 +8,104 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; background: #f5f7fa; color: #1a1a2e; }
     #app { display: flex; flex-direction: column; min-height: 100vh; }
-    .topbar { background: #0f2040; color: #fff; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+
+    /* Topbar */
+    .topbar { background: #0f2040; color: #fff; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.25); position: sticky; top: 0; z-index: 100; }
     .topbar-logo { font-size: 15px; font-weight: 700; margin-right: auto; }
     .topbar-logo span { color: #f9a825; }
     .nav-tab { background: transparent; border: none; color: rgba(255,255,255,.6); padding: 0 16px; height: 56px; cursor: pointer; font-size: 13px; border-bottom: 3px solid transparent; transition: .15s; font-weight: 500; }
     .nav-tab:hover { color: #fff; }
     .nav-tab.active { color: #fff; border-bottom-color: #f9a825; }
+
+    /* Layout */
     .main { flex: 1; padding: 20px 24px; max-width: 1300px; width: 100%; margin: 0 auto; }
     .card { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 16px; }
     .card-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: #0f2040; }
-    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+
+    /* Form */
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 4px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 5px; letter-spacing: .4px; }
+
+    /* Inputs */
+    select, input[type="week"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; font-size: 13px; cursor: pointer; width: 100%; }
+    input[type="text"], input[type="number"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; width: 100%; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #0f2040; box-shadow: 0 0 0 3px rgba(15,32,64,.08); }
+    textarea { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; font-family: inherit; resize: vertical; }
+
+    /* Buttons */
     .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; cursor: pointer; font-size: 12px; font-weight: 500; white-space: nowrap; transition: .12s; }
     .btn:hover { background: #f1f5f9; border-color: #94a3b8; }
-    .btn.primary { background: #0f2040; color: #fff; border: none; }
-    .btn.primary:hover { background: #1a3560; }
-    .btn.amber { background: #f9a825; color: #1a1a2e; border: none; font-weight: 600; }
+    .btn.amber { background: #f9a825; color: #1a1a2e; border: none; font-weight: 700; font-size: 13px; }
     .btn.amber:hover { background: #e09720; }
-    .btn.sm { padding: 4px 9px; font-size: 11px; }
+    .btn.sm { padding: 4px 8px; font-size: 11px; }
     .btn.danger { color: #dc2626; border-color: #fca5a5; }
     .btn.danger:hover { background: #fee2e2; }
-    select, input[type="week"] { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; font-size: 13px; cursor: pointer; min-width: 200px; }
-    input[type="text"], input[type="number"] { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; width: 100%; max-width: 300px; }
-    input:focus { outline: none; border-color: #0f2040; box-shadow: 0 0 0 3px rgba(15,32,64,.08); }
-    textarea { width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; color: #1a1a2e; font-family: inherit; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 5px; }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
-    .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }
-    .stat-val { font-size: 24px; font-weight: 700; color: #0f2040; }
-    .stat-label { font-size: 10px; color: #64748b; margin-top: 4px; }
-    .chip { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 4px 8px; font-size: 10px; color: #1e40af; font-weight: 500; margin-right: 4px; margin-bottom: 4px; }
+
+    /* Chips */
+    .chip { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 3px 8px; font-size: 11px; color: #1e40af; font-weight: 500; margin-right: 4px; margin-bottom: 4px; }
     .chip.remove { cursor: pointer; }
     .chip.remove:hover { background: #dbeafe; }
-    .checkbox-list { max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 4px; cursor: pointer; }
-    .checkbox-item:hover { background: #f8fafc; border-radius: 4px; }
-    .checkbox-item input { cursor: pointer; }
-    .checkbox-item label { cursor: pointer; flex: 1; margin: 0; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+
+    /* Fincas checklist */
+    .checkbox-list { max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 4px; cursor: pointer; border-radius: 4px; }
+    .checkbox-item:hover { background: #f8fafc; }
+    .checkbox-item input { cursor: pointer; width: 14px; height: 14px; }
+    .checkbox-item label { cursor: pointer; flex: 1; margin: 0; font-size: 12px; }
+
+    /* Stats */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 12px; text-align: center; }
+    .stat-val { font-size: 26px; font-weight: 700; color: #0f2040; line-height: 1.1; }
+    .stat-label { font-size: 10px; color: #64748b; margin-top: 5px; text-transform: uppercase; letter-spacing: .3px; }
+    .stat.error { border-color: #fca5a5; background: #fff5f5; }
+    .stat.error .stat-val { color: #dc2626; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; }
     table thead { background: #f8fafc; }
-    table th, table td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
-    table th { font-weight: 600; color: #0f2040; }
-    .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+    table th { padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 11px; font-weight: 700; color: #0f2040; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+    table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; vertical-align: middle; }
+    .row-ok { background: #f0fdf4; }
+    .row-ok:hover { background: #dcfce7; }
+    .row-error { background: #fff5f5; }
+    .row-error:hover { background: #fee2e2; }
+    .row-detail { background: #f8fafc; }
+    .row-total { background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1 !important; }
+
+    /* Badge */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-ok { background: #dcfce7; color: #16a34a; }
+    .badge-error { background: #fee2e2; color: #dc2626; }
+    .badge-warn { background: #fef3c7; color: #d97706; }
+
+    /* Diff banner */
+    .diff-banner { padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+    .diff-banner.ok { background: #dcfce7; color: #16a34a; }
+    .diff-banner.error { background: #fee2e2; color: #dc2626; }
+
+    /* Grand total */
+    .grand-total { background: #0f2040; color: #fff; border-radius: 8px; padding: 20px 24px; display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 16px; margin-bottom: 16px; }
+    .grand-total .val { font-size: 28px; font-weight: 700; line-height: 1.1; }
+    .grand-total .lbl { font-size: 10px; color: rgba(255,255,255,.6); margin-top: 4px; text-transform: uppercase; letter-spacing: .4px; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: #fff; border-radius: 10px; padding: 24px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .modal-title { font-size: 15px; font-weight: 700; color: #0f2040; }
+
+    /* Zone header in summary */
+    .zone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .zone-name { font-size: 14px; font-weight: 700; color: #0f2040; }
+
+    /* Actions cell */
+    .actions { display: flex; gap: 4px; }
+
+    /* Saving indicator */
+    .saving-dot { font-size: 11px; color: #f9a825; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
   </style>
 </head>
 <body>
@@ -60,147 +116,486 @@
 <script type="text/babel">
 const { useState, useEffect } = React;
 
+// ── Helpers de compatibilidad hacia atrás ──────────────────────────────────
+// Los registros viejos tienen `cantidad` + `completado`.
+// Los nuevos tienen `planificado` + `inspeccionado`.
+const getPlan = (p) => p.planificado != null ? p.planificado : (p.cantidad ?? 0);
+const getInsp = (p) => p.inspeccionado != null ? p.inspeccionado : (p.completado ? (p.cantidad ?? 0) : 0);
+const getDiff = (p) => +(getPlan(p) - getInsp(p)).toFixed(2);
+const hasError = (p) => getDiff(p) !== 0;
+
+// ── FormularioPlan: reutilizado en Agregar y en el modal de edición ─────────
+function FormularioPlan({ config, inicial, esEdicion, onGuardar, onCancelar, semanaFija }) {
+  const [semana,       setSemana]       = useState(inicial?.semana       ?? semanaFija ?? '');
+  const [zona,         setZona]         = useState(inicial?.zona         ?? '');
+  const [exportadora,  setExportadora]  = useState(inicial?.exportadora  ?? '');
+  const [planificado,  setPlanificado]  = useState(inicial ? String(getPlan(inicial)) : '');
+  const [inspeccionado,setInspeccionado]= useState(inicial ? String(getInsp(inicial)) : '');
+  const [fincas,       setFincas]       = useState(inicial?.fincas       ?? []);
+  const [tecnicos,     setTecnicos]     = useState(inicial?.tecnicos     ?? []);
+  const [motivo,       setMotivo]       = useState(inicial?.motivo       ?? '');
+  const [buscarFinca,  setBuscarFinca]  = useState('');
+
+  const planNum  = parseFloat(planificado)   || 0;
+  const inspNum  = parseFloat(inspeccionado) || 0;
+  const ambosOk  = planificado !== '' && inspeccionado !== '';
+  const hayDiff  = ambosOk && planNum !== inspNum;
+  const diffNum  = +(planNum - inspNum).toFixed(2);
+
+  const exportadoras    = zona ? Object.keys(config.fincas[zona] || {}) : [];
+  const fincasDeExp     = zona && exportadora ? (config.fincas[zona]?.[exportadora] || []) : [];
+  const fincasFiltradas = fincasDeExp.filter(f => f.toLowerCase().includes(buscarFinca.toLowerCase()));
+
+  const toggleFinca   = f => setFincas(prev => prev.includes(f) ? prev.filter(x=>x!==f) : [...prev,f]);
+  const toggleTecnico = t => {
+    if (tecnicos.includes(t)) { setTecnicos(prev => prev.filter(x=>x!==t)); return; }
+    if (tecnicos.length >= 2) { alert('Máximo 2 técnicos'); return; }
+    setTecnicos(prev => [...prev, t]);
+  };
+
+  const handleZona = v => { setZona(v); setExportadora(''); setFincas([]); setBuscarFinca(''); };
+  const handleExp  = v => { setExportadora(v); setFincas([]); setBuscarFinca(''); };
+
+  const submit = () => {
+    if (!semana || !zona || !exportadora || planificado==='' || inspeccionado==='' || fincas.length===0 || tecnicos.length===0) {
+      alert('Completa todos los campos obligatorios (semana, zona, exportadora, cantidades, fincas y técnicos).');
+      return;
+    }
+    if (hayDiff && !motivo.trim()) {
+      alert('Hay diferencia entre planificado e inspeccionado. Escribe el motivo antes de guardar.');
+      return;
+    }
+    const registro = {
+      id: inicial?.id ?? Math.random().toString(36).slice(2),
+      semana, zona, exportadora,
+      planificado: planNum,
+      inspeccionado: inspNum,
+      fincas, tecnicos,
+      motivo: hayDiff ? motivo.trim() : '',
+      timestamp: inicial?.timestamp ?? new Date().toISOString()
+    };
+    onGuardar(registro);
+  };
+
+  return (
+    <div>
+      {/* Semana */}
+      <div className="form-group">
+        <label>Semana</label>
+        <input type="week" value={semana} onChange={e=>setSemana(e.target.value)} disabled={!!semanaFija && !esEdicion} />
+      </div>
+
+      {/* Zona + Exportadora */}
+      <div className="form-row">
+        <div className="form-group">
+          <label>Zona</label>
+          <select value={zona} onChange={e=>handleZona(e.target.value)}>
+            <option value="">-- Selecciona zona --</option>
+            {config.zonas.map(z=><option key={z} value={z}>{z}</option>)}
+          </select>
+        </div>
+        {zona && (
+          <div className="form-group">
+            <label>Exportadora</label>
+            <select value={exportadora} onChange={e=>handleExp(e.target.value)}>
+              <option value="">-- Selecciona --</option>
+              {exportadoras.map(e=><option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Planificado + Inspeccionado */}
+      <div className="form-row">
+        <div className="form-group">
+          <label>Planificado</label>
+          <input type="number" step="0.5" min="0" placeholder="0"
+            value={planificado} onChange={e=>setPlanificado(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Inspeccionado</label>
+          <input type="number" step="0.5" min="0" placeholder="0"
+            value={inspeccionado} onChange={e=>setInspeccionado(e.target.value)} />
+        </div>
+      </div>
+
+      {/* Banner diferencia */}
+      {ambosOk && (
+        <div className={`diff-banner ${hayDiff ? 'error' : 'ok'}`}>
+          {hayDiff
+            ? `⚠ Diferencia de ${Math.abs(diffNum)} contenedor${Math.abs(diffNum)===1?'':'es'} — se requiere motivo`
+            : '✓ Planificado e inspeccionado coinciden'}
+        </div>
+      )}
+
+      {/* Fincas */}
+      {exportadora && (
+        <div className="form-group">
+          <label>Fincas ({fincas.length} seleccionadas)</label>
+          <input type="text" placeholder="Buscar finca..." value={buscarFinca}
+            onChange={e=>setBuscarFinca(e.target.value)} style={{marginBottom:6}} />
+          <div className="checkbox-list">
+            {fincasFiltradas.length === 0
+              ? <div style={{color:'#94a3b8',padding:'6px 4px',fontSize:12}}>Sin resultados</div>
+              : fincasFiltradas.map(f=>(
+                  <div key={f} className="checkbox-item">
+                    <input type="checkbox" id={`finca-${f}-${esEdicion?'e':'n'}`}
+                      checked={fincas.includes(f)} onChange={()=>toggleFinca(f)} />
+                    <label htmlFor={`finca-${f}-${esEdicion?'e':'n'}`}>{f}</label>
+                  </div>
+                ))
+            }
+          </div>
+          {fincas.length > 0 && (
+            <div style={{marginTop:8}}>
+              {fincas.map(f=><span key={f} className="chip">{f}</span>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Técnicos */}
+      <div className="form-group">
+        <label>Técnicos ({tecnicos.length}/2)</label>
+        <select onChange={e=>{ if(e.target.value) toggleTecnico(e.target.value); e.target.value=''; }}>
+          <option value="">Agregar técnico...</option>
+          {config.tecnicos.filter(t=>!tecnicos.includes(t)).map(t=><option key={t} value={t}>{t}</option>)}
+        </select>
+        {tecnicos.length > 0 && (
+          <div style={{marginTop:8}}>
+            {tecnicos.map(t=>(
+              <span key={t} className="chip remove" onClick={()=>setTecnicos(prev=>prev.filter(x=>x!==t))}>
+                {t} ✕
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Motivo — solo cuando hay diferencia */}
+      {hayDiff && (
+        <div className="form-group">
+          <label style={{color:'#dc2626'}}>Motivo de la diferencia *</label>
+          <textarea rows={3} placeholder="Explica por qué no se inspeccionó la cantidad planificada..."
+            value={motivo} onChange={e=>setMotivo(e.target.value)} />
+        </div>
+      )}
+
+      {/* Botones */}
+      <div style={{display:'flex',gap:10,marginTop:4}}>
+        <button className="btn amber" onClick={submit} style={{flex:1,padding:'10px 0',justifyContent:'center'}}>
+          {esEdicion ? '✓ GUARDAR CAMBIOS' : '✓ AGREGAR'}
+        </button>
+        {onCancelar && (
+          <button className="btn" onClick={onCancelar} style={{padding:'10px 20px'}}>
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Modal de edición ────────────────────────────────────────────────────────
+function ModalEditar({ plan, config, onGuardar, onCerrar }) {
+  return (
+    <div className="modal-overlay" onClick={onCerrar}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">✏️ Editar registro</div>
+          <button className="btn sm" onClick={onCerrar}>✕ Cerrar</button>
+        </div>
+        <FormularioPlan
+          config={config}
+          inicial={plan}
+          esEdicion={true}
+          onGuardar={reg=>{ onGuardar(reg); onCerrar(); }}
+          onCancelar={onCerrar}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── App principal ───────────────────────────────────────────────────────────
 function App() {
-  const [tab, setTab] = useState('agregar');
-  const [config, setConfig] = useState(null);
-  const [planificaciones, setPlanificaciones] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [expandedRows, setExpandedRows] = useState({});
-  const [formSemana, setFormSemana] = useState('');
-  const [formZona, setFormZona] = useState('');
-  const [formExportadora, setFormExportadora] = useState('');
-  const [formCantidad, setFormCantidad] = useState('');
-  const [formFincas, setFormFincas] = useState([]);
-  const [formTecnicos, setFormTecnicos] = useState([]);
-  const [formCompletado, setFormCompletado] = useState(true);
-  const [formMotivo, setFormMotivo] = useState('');
-  const [filterSemana, setFilterSemana] = useState('');
+  const [tab,            setTab]            = useState('agregar');
+  const [config,         setConfig]         = useState(null);
+  const [planes,         setPlanes]         = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [saving,         setSaving]         = useState(false);
+  const [editando,       setEditando]       = useState(null);
+  const [filterSemana,   setFilterSemana]   = useState('');
+  const [expanded,       setExpanded]       = useState({});
+  const [semanaActual,   setSemanaActual]   = useState('');  // persiste entre entradas del formulario
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/config').then(r => r.json()),
-      fetch('/api/contenedores').then(r => r.json())
-    ])
-    .then(([cfg, cont]) => {
+      fetch('/api/config').then(r=>r.json()),
+      fetch('/api/contenedores').then(r=>r.json())
+    ]).then(([cfg, cont]) => {
       setConfig(cfg);
-      setPlanificaciones(cont.contenedores || []);
+      setPlanes(cont.contenedores || []);
       setLoading(false);
-    })
-    .catch(e => { console.error(e); setLoading(false); });
+    }).catch(e=>{ console.error(e); setLoading(false); });
   }, []);
 
-  const guardar = async (newPlans) => {
+  const persistir = async (nuevos) => {
     setSaving(true);
     try {
-      await fetch('/api/contenedores', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contenedores: newPlans }) });
-    } catch(e) { console.error('Error:', e); }
+      await fetch('/api/contenedores', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({contenedores: nuevos})
+      });
+    } catch(e) { console.error('Error guardando:', e); }
     setSaving(false);
   };
 
-  const agregarPlanificacion = () => {
-    if (!formSemana || !formCantidad || !formZona || !formExportadora || formFincas.length === 0 || formTecnicos.length === 0) {
-      alert('Completa todos los campos');
-      return;
-    }
-    const newPlan = {
-      id: Math.random().toString(36).slice(2),
-      semana: formSemana, zona: formZona, exportadora: formExportadora, cantidad: parseFloat(formCantidad),
-      fincas: formFincas, tecnicos: formTecnicos, completado: formCompletado, motivo: formCompletado ? '' : formMotivo,
-      timestamp: new Date().toISOString()
-    };
-    const newPlans = [...planificaciones, newPlan];
-    setPlanificaciones(newPlans);
-    guardar(newPlans);
-    setFormSemana(''); setFormZona(''); setFormExportadora(''); setFormCantidad('');
-    setFormFincas([]); setFormTecnicos([]); setFormCompletado(true); setFormMotivo('');
+  const agregar = (registro) => {
+    setSemanaActual(registro.semana);
+    const nuevos = [...planes, registro];
+    setPlanes(nuevos);
+    persistir(nuevos);
   };
 
-  const eliminarPlanificacion = (id) => {
-    if (confirm('¿Eliminar?')) {
-      const newPlans = planificaciones.filter(p => p.id !== id);
-      setPlanificaciones(newPlans);
-      guardar(newPlans);
-    }
+  const actualizar = (actualizado) => {
+    const nuevos = planes.map(p => p.id===actualizado.id ? actualizado : p);
+    setPlanes(nuevos);
+    persistir(nuevos);
   };
 
-  const getExportadoras = () => config && formZona ? Object.keys(config.fincas[formZona] || {}) : [];
-  const getFincasDeExp = () => config && formZona && formExportadora ? config.fincas[formZona]?.[formExportadora] || [] : [];
-  const toggleFinca = (f) => setFormFincas(formFincas.includes(f) ? formFincas.filter(x => x !== f) : [...formFincas, f]);
-  const toggleTecnico = (t) => {
-    if (formTecnicos.includes(t)) setFormTecnicos(formTecnicos.filter(x => x !== t));
-    else if (formTecnicos.length < 2) setFormTecnicos([...formTecnicos, t]);
-    else alert('Máximo 2 técnicos');
-  };
-  const getUniqueSemanas = () => [...new Set(planificaciones.map(p => p.semana))].sort((a, b) => b.localeCompare(a));
-  const planificacionesPorSemana = () => !filterSemana ? planificaciones : planificaciones.filter(p => p.semana === filterSemana);
-  const resumenPorZonaExportadora = () => {
-    const grouped = {};
-    planificacionesPorSemana().forEach(p => {
-      const key = `${p.zona}|${p.exportadora}`;
-      if (!grouped[key]) grouped[key] = { zona: p.zona, exportadora: p.exportadora, cantidad: 0, items: [] };
-      grouped[key].cantidad += p.cantidad;
-      grouped[key].items.push(p);
-    });
-    return Object.values(grouped);
+  const eliminar = (id) => {
+    if (!confirm('¿Seguro que quieres eliminar este registro?')) return;
+    const nuevos = planes.filter(p=>p.id!==id);
+    setPlanes(nuevos);
+    persistir(nuevos);
   };
 
-  if (loading) return <div style={{ padding: 24, textAlign: 'center' }}>Cargando...</div>;
+  const toggleExpand = id => setExpanded(prev=>({...prev,[id]:!prev[id]}));
+
+  // ── Datos del resumen ────────────────────────────────────────────────────
+  const semanas  = [...new Set(planes.map(p=>p.semana))].sort((a,b)=>b.localeCompare(a));
+  const filtrado = filterSemana ? planes.filter(p=>p.semana===filterSemana) : planes;
+
+  const totalPlan  = filtrado.reduce((s,p)=>s+getPlan(p), 0);
+  const totalInsp  = filtrado.reduce((s,p)=>s+getInsp(p), 0);
+  const totalDiff  = +(totalPlan - totalInsp).toFixed(2);
+  const conError   = filtrado.filter(hasError).length;
+
+  // Agrupar por zona manteniendo el orden de inserción
+  const porZona = {};
+  filtrado.forEach(p=>{
+    if (!porZona[p.zona]) porZona[p.zona] = [];
+    porZona[p.zona].push(p);
+  });
+
+  if (loading) return (
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'#64748b',fontSize:15}}>
+      Cargando datos...
+    </div>
+  );
 
   return (
     <div id="app">
+      {/* ── Topbar ── */}
       <div className="topbar">
         <div className="topbar-logo">📦 Planificación <span>Banano</span></div>
-        <button className={`nav-tab ${tab === 'agregar' ? 'active' : ''}`} onClick={() => setTab('agregar')}>➕ Agregar</button>
-        <button className={`nav-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
-        {saving && <span style={{ fontSize: 11, color: '#f9a825' }}>Guardando...</span>}
+        <button className={`nav-tab ${tab==='agregar'?'active':''}`} onClick={()=>setTab('agregar')}>➕ Agregar</button>
+        <button className={`nav-tab ${tab==='resumen'?'active':''}`} onClick={()=>setTab('resumen')}>📊 Resumen</button>
+        {saving && <span className="saving-dot">● Guardando...</span>}
       </div>
+
       <div className="main">
-        {tab === 'agregar' && (
+
+        {/* ═══════════════ TAB AGREGAR ═══════════════ */}
+        {tab==='agregar' && (
           <div className="card">
-            <div className="card-title">➕ Nueva Planificación</div>
-            <div className="form-row">
-              <div className="form-group"><label>Semana</label><input type="week" value={formSemana} onChange={e => setFormSemana(e.target.value)} /></div>
-            </div>
-            <div className="form-row">
-              <div className="form-group"><label>Zona</label><select value={formZona} onChange={e => { setFormZona(e.target.value); setFormExportadora(''); setFormFincas([]); }}><option value="">-- Selecciona zona --</option>{config && config.zonas && config.zonas.map(z => <option key={z} value={z}>{z}</option>)}</select></div>
-              {formZona && (<div className="form-group"><label>Exportadora</label><select value={formExportadora} onChange={e => { setFormExportadora(e.target.value); setFormFincas([]); }}><option value="">-- Selecciona --</option>{getExportadoras().map(e => <option key={e} value={e}>{e}</option>)}</select></div>)}
-              <div className="form-group"><label>Cantidad</label><input type="number" step="0.5" placeholder="100.5" value={formCantidad} onChange={e => setFormCantidad(e.target.value)} /></div>
-            </div>
-            {formExportadora && (
-              <div className="form-group"><label>Fincas ({formFincas.length})</label><div className="checkbox-list">{getFincasDeExp().map(f => (<div key={f} className="checkbox-item"><input type="checkbox" id={f} checked={formFincas.includes(f)} onChange={() => toggleFinca(f)} /><label htmlFor={f}>{f}</label></div>))}</div>{formFincas.length > 0 && <div style={{ marginTop: 8 }}>{formFincas.map(f => <span key={f} className="chip">{f}</span>)}</div>}</div>
-            )}
-            <div className="form-group"><label>Técnicos ({formTecnicos.length}/2)</label><select onChange={e => { if (e.target.value) toggleTecnico(e.target.value); e.target.value = ''; }}><option value="">Agregar técnico...</option>{config && config.tecnicos && config.tecnicos.filter(t => !formTecnicos.includes(t)).map(t => <option key={t} value={t}>{t}</option>)}</select>{formTecnicos.length > 0 && <div style={{ marginTop: 8 }}>{formTecnicos.map(t => <span key={t} className="chip remove" onClick={() => setFormTecnicos(formTecnicos.filter(x => x !== t))}>{t} ✕</span>)}</div>}</div>
-            <div className="form-row"><div className="form-group"><label>Estado</label><select value={formCompletado ? 'completo' : 'incompleto'} onChange={e => setFormCompletado(e.target.value === 'completo')}><option value="completo">✓ Completado</option><option value="incompleto">✗ Incompleto</option></select></div></div>
-            {!formCompletado && <div className="form-group"><label>Razón</label><textarea placeholder="Detalle..." value={formMotivo} onChange={e => setFormMotivo(e.target.value)} style={{ minHeight: 60 }} /></div>}
-            <button className="btn amber" onClick={agregarPlanificacion} style={{ width: '100%', padding: '10px' }}>✓ AGREGAR</button>
+            <div className="card-title">➕ Nueva planificación</div>
+            <FormularioPlan
+              config={config}
+              inicial={null}
+              esEdicion={false}
+              semanaFija={semanaActual || undefined}
+              onGuardar={reg=>{ agregar(reg); }}
+            />
           </div>
         )}
-        {tab === 'resumen' && (
+
+        {/* ═══════════════ TAB RESUMEN ═══════════════ */}
+        {tab==='resumen' && (
           <div>
+            {/* Stats */}
             <div className="stat-grid">
-              <div className="stat"><div className="stat-val">{planificacionesPorSemana().length}</div><div className="stat-label">Total</div></div>
-              <div className="stat"><div className="stat-val">{planificacionesPorSemana().filter(p => p.completado).length}</div><div className="stat-label">Completos</div></div>
-              <div className="stat"><div className="stat-val">{planificacionesPorSemana().filter(p => !p.completado).length}</div><div className="stat-label">Incompletos</div></div>
-              <div className="stat"><div className="stat-val">{planificacionesPorSemana().reduce((s, p) => s + p.cantidad, 0).toFixed(1)}</div><div className="stat-label">Qty Total</div></div>
+              <div className="stat">
+                <div className="stat-val">{filtrado.length}</div>
+                <div className="stat-label">Registros</div>
+              </div>
+              <div className="stat">
+                <div className="stat-val">{totalPlan.toFixed(1)}</div>
+                <div className="stat-label">Total Planificado</div>
+              </div>
+              <div className="stat">
+                <div className="stat-val">{totalInsp.toFixed(1)}</div>
+                <div className="stat-label">Total Inspeccionado</div>
+              </div>
+              <div className={`stat ${conError>0?'error':''}`}>
+                <div className="stat-val">{conError}</div>
+                <div className="stat-label">Con diferencias</div>
+              </div>
             </div>
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}><div className="card-title">Planificaciones</div><select value={filterSemana} onChange={e => setFilterSemana(e.target.value)} style={{ maxWidth: '220px' }}><option value="">Todas</option>{getUniqueSemanas().map(s => <option key={s} value={s}>{s}</option>)}</select></div>
-              {planificacionesPorSemana().length === 0 ? <div style={{ textAlign: 'center', color: '#64748b', padding: 20 }}>Sin planificaciones</div> : (
-                <table><thead><tr><th>Zona</th><th>Exportadora</th><th>Cantidad</th><th></th></tr></thead><tbody>{resumenPorZonaExportadora().map(grupo => (
-                  <tr key={`${grupo.zona}|${grupo.exportadora}`}><td>{grupo.zona}</td><td>{grupo.exportadora}</td><td>{grupo.cantidad.toFixed(1)}</td><td><button className="btn sm" onClick={() => { const key = `${grupo.zona}|${grupo.exportadora}`; setExpandedRows({ ...expandedRows, [key]: !expandedRows[key] }); }}>{expandedRows[`${grupo.zona}|${grupo.exportadora}`] ? '▼' : '▶'}</button></td></tr>
-                ))}</tbody></table>
-              )}
-              {resumenPorZonaExportadora().map(grupo => (expandedRows[`${grupo.zona}|${grupo.exportadora}`] && (
-                <div key={`d-${grupo.zona}|${grupo.exportadora}`} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #e2e8f0' }}>
-                  <div className="card-title">Detalles: {grupo.zona} → {grupo.exportadora}</div>
-                  {grupo.items.map(item => (<div key={item.id} className="stat-box"><div style={{ display: 'flex', justifyContent: 'space-between' }}><div><div style={{ fontWeight: 600, marginBottom: 4 }}>Cantidad: {item.cantidad}</div><div style={{ color: '#64748b', fontSize: 11 }}>Fincas: {item.fincas.join(', ')}</div><div style={{ color: '#64748b', fontSize: 11 }}>Técnicos: {item.tecnicos.join(', ')}</div><div style={{ color: '#64748b', fontSize: 11 }}>Estado: <span className={`tag ${item.completado ? 'tag-ok' : 'tag-bad'}`}>{item.completado ? '✓ OK' : '✗'}</span></div></div><button className="btn sm danger" onClick={() => eliminarPlanificacion(item.id)}>✕</button></div></div>))}
+
+            {/* Filtro de semana */}
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+              <span style={{fontSize:12,fontWeight:600,color:'#64748b'}}>Semana:</span>
+              <select value={filterSemana} onChange={e=>setFilterSemana(e.target.value)} style={{maxWidth:220}}>
+                <option value="">Todas las semanas</option>
+                {semanas.map(s=><option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            {/* Sin datos */}
+            {filtrado.length===0 && (
+              <div className="card" style={{textAlign:'center',color:'#94a3b8',padding:48,fontSize:14}}>
+                Sin registros para mostrar
+              </div>
+            )}
+
+            {/* Tabla por zona */}
+            {Object.entries(porZona).map(([zona, registros])=>{
+              const zPlan = registros.reduce((s,p)=>s+getPlan(p),0);
+              const zInsp = registros.reduce((s,p)=>s+getInsp(p),0);
+              const zDiff = +(zPlan-zInsp).toFixed(2);
+              const zErr  = registros.filter(hasError).length;
+              return (
+                <div key={zona} className="card" style={{marginBottom:16,padding:'16px 0 0'}}>
+                  <div className="zone-header" style={{padding:'0 20px',marginBottom:12}}>
+                    <div className="zone-name">{zona}</div>
+                    {zErr>0
+                      ? <span className="badge badge-error">⚠ {zErr} con diferencia</span>
+                      : <span className="badge badge-ok">✓ Sin errores</span>
+                    }
+                  </div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Exportadora</th>
+                        <th style={{textAlign:'right'}}>Planif.</th>
+                        <th style={{textAlign:'right'}}>Inspec.</th>
+                        <th style={{textAlign:'right'}}>Dif.</th>
+                        <th>Técnicos</th>
+                        <th>Estado</th>
+                        <th style={{width:110}}>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {registros.map(p=>{
+                        const diff = getDiff(p);
+                        const error = diff !== 0;
+                        return (
+                          <React.Fragment key={p.id}>
+                            {/* Fila principal */}
+                            <tr className={error?'row-error':'row-ok'}>
+                              <td style={{fontWeight:600}}>{p.exportadora}</td>
+                              <td style={{textAlign:'right'}}>{getPlan(p).toFixed(1)}</td>
+                              <td style={{textAlign:'right'}}>{getInsp(p).toFixed(1)}</td>
+                              <td style={{textAlign:'right',fontWeight:700,color:error?'#dc2626':'#16a34a'}}>
+                                {error ? (diff>0?`-${diff.toFixed(1)}`:`+${Math.abs(diff).toFixed(1)}`) : '✓'}
+                              </td>
+                              <td style={{fontSize:11,color:'#475569',maxWidth:200}}>
+                                {p.tecnicos.join(' / ')}
+                              </td>
+                              <td>
+                                <span className={`badge ${error?'badge-error':'badge-ok'}`}>
+                                  {error ? '⚠ Error' : '✓ OK'}
+                                </span>
+                              </td>
+                              <td>
+                                <div className="actions">
+                                  <button className="btn sm" title="Ver detalles" onClick={()=>toggleExpand(p.id)}>
+                                    {expanded[p.id]?'▼':'▶'}
+                                  </button>
+                                  <button className="btn sm" title="Editar" onClick={()=>setEditando(p)}>✏️</button>
+                                  <button className="btn sm danger" title="Eliminar" onClick={()=>eliminar(p.id)}>✕</button>
+                                </div>
+                              </td>
+                            </tr>
+
+                            {/* Fila de detalle expandible */}
+                            {expanded[p.id] && (
+                              <tr className="row-detail">
+                                <td colSpan={7} style={{padding:'12px 20px'}}>
+                                  <div style={{fontSize:12,marginBottom:4}}>
+                                    <strong>Semana:</strong> {p.semana}
+                                  </div>
+                                  <div style={{fontSize:12,marginBottom:error&&p.motivo?8:0}}>
+                                    <strong>Fincas:</strong> {p.fincas.join(', ')}
+                                  </div>
+                                  {error && p.motivo && (
+                                    <div style={{padding:'8px 12px',background:'#fee2e2',borderRadius:6,color:'#dc2626',fontSize:12,marginTop:6}}>
+                                      <strong>Motivo:</strong> {p.motivo}
+                                    </div>
+                                  )}
+                                  {error && !p.motivo && (
+                                    <div style={{padding:'6px 12px',background:'#fef3c7',borderRadius:6,color:'#d97706',fontSize:12,marginTop:6}}>
+                                      ⚠ Sin motivo registrado
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+
+                      {/* Fila de totales por zona */}
+                      <tr className="row-total">
+                        <td>TOTAL ZONA</td>
+                        <td style={{textAlign:'right'}}>{zPlan.toFixed(1)}</td>
+                        <td style={{textAlign:'right'}}>{zInsp.toFixed(1)}</td>
+                        <td style={{textAlign:'right',color:zDiff!==0?'#dc2626':'#16a34a'}}>
+                          {zDiff!==0 ? `-${Math.abs(zDiff).toFixed(1)}` : '✓'}
+                        </td>
+                        <td colSpan={3}></td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              )))}
-            </div>
+              );
+            })}
+
+            {/* Gran total */}
+            {filtrado.length>0 && (
+              <div className="grand-total">
+                <div>
+                  <div className="val">{totalPlan.toFixed(1)}</div>
+                  <div className="lbl">Total Planificado</div>
+                </div>
+                <div>
+                  <div className="val">{totalInsp.toFixed(1)}</div>
+                  <div className="lbl">Total Inspeccionado</div>
+                </div>
+                <div>
+                  <div className="val" style={{color:totalDiff!==0?'#f87171':'#4ade80'}}>
+                    {totalDiff!==0 ? `-${Math.abs(totalDiff).toFixed(1)}` : '✓'}
+                  </div>
+                  <div className="lbl">Diferencia Total</div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Modal de edición */}
+      {editando && (
+        <ModalEditar
+          plan={editando}
+          config={config}
+          onGuardar={actualizar}
+          onCerrar={()=>setEditando(null)}
+        />
+      )}
     </div>
   );
 }
