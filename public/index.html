@@ -117,6 +117,17 @@
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
     .modal-title { font-size: 15px; font-weight: 700; color: #0f2040; }
 
+    /* ── Zona tabs ── */
+    .zona-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; flex-wrap: nowrap; }
+    .zona-tab { padding: 7px 16px; border: 1px solid #e2e8f0; border-radius: 20px; background: #fff; color: #64748b; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; transition: .12s; flex-shrink: 0; }
+    .zona-tab:hover { background: #f1f5f9; border-color: #94a3b8; }
+    .zona-tab.active { background: #0f2040; color: #fff; border-color: #0f2040; }
+
+    /* ── Sub-fila de detalle de exportadora ── */
+    .row-sub { background: #f8fafc; }
+    .row-sub td { padding: 8px 12px 8px 28px; border-bottom: 1px solid #f1f5f9; font-size: 11px; color: #475569; }
+    .row-sub:last-child td { border-bottom: none; }
+
     /* ── Misc ── */
     .saving-dot { font-size: 11px; color: #f9a825; animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
@@ -489,6 +500,7 @@ function App() {
   const [saving,       setSaving]       = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [filterSemana, setFilterSemana] = useState('');
+  const [filterZona,   setFilterZona]   = useState(''); // '' = Total (todas las zonas)
   const [expanded,     setExpanded]     = useState({});
   const [ultimaFecha,  setUltimaFecha]  = useState(''); // recuerda la última fecha usada
 
@@ -533,7 +545,9 @@ function App() {
 
   // ── Resumen ──────────────────────────────────────────────────────────────
   const semanas  = [...new Set(planes.map(p => p.semana).filter(Boolean))].sort((a, b) => b.localeCompare(a));
-  const filtrado = filterSemana ? planes.filter(p => p.semana === filterSemana) : planes;
+  const filtrado = planes
+    .filter(p => !filterSemana || p.semana === filterSemana)
+    .filter(p => !filterZona   || p.zona   === filterZona);
 
   const totalPlan  = filtrado.reduce((s, p) => s + getPlan(p), 0);
   const totalInsp  = filtrado.filter(p => !isPending(p)).reduce((s, p) => s + getInsp(p), 0);
@@ -588,6 +602,27 @@ function App() {
         {/* ════════════════ TAB RESUMEN ════════════════ */}
         {tab === 'resumen' && (
           <div>
+            {/* ── Selector de zona ── */}
+            <div className="zona-tabs">
+              <button className={`zona-tab ${filterZona === '' ? 'active' : ''}`}
+                onClick={() => setFilterZona('')}>
+                📊 Total
+              </button>
+              {config.zonas.map(z => (
+                <button key={z} className={`zona-tab ${filterZona === z ? 'active' : ''}`}
+                  onClick={() => setFilterZona(z)}>
+                  {z.split(' - ')[0]}
+                </button>
+              ))}
+            </div>
+
+            {/* Título de zona activa */}
+            {filterZona && (
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2040', marginBottom: 12 }}>
+                {filterZona}
+              </div>
+            )}
+
             {/* Stats */}
             <div className="stat-grid">
               <div className="stat">
@@ -627,7 +662,7 @@ function App() {
               </div>
             )}
 
-            {/* ── Tabla por día ── */}
+            {/* ── Tablas por día ── */}
             {diasOrdenados.map(dia => {
               const regs  = porDia[dia];
               const dPlan = regs.reduce((s, p) => s + getPlan(p), 0);
@@ -636,117 +671,208 @@ function App() {
               const dErr  = regs.filter(hasError).length;
               const dPend = regs.filter(isPending).length;
 
-              return (
-                <div key={dia} className="card" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
-                  {/* Cabecera del día */}
-                  <div className="day-header">
-                    <div className="day-name">{dia}</div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {dPend > 0  && <span className="badge badge-pending">⏳ {dPend} pendiente{dPend > 1 ? 's' : ''}</span>}
-                      {dErr > 0   && <span className="badge badge-error">⚠ {dErr} error{dErr > 1 ? 'es' : ''}</span>}
-                      {dErr === 0 && dPend === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
+              // ── Vista ZONA: agrupar por exportadora ──────────────────────
+              if (filterZona) {
+                const expMap = {};
+                regs.forEach(p => {
+                  if (!expMap[p.exportadora]) expMap[p.exportadora] = { planif: 0, inspec: 0, pend: 0, records: [] };
+                  expMap[p.exportadora].planif += getPlan(p);
+                  if (isPending(p)) expMap[p.exportadora].pend++;
+                  else expMap[p.exportadora].inspec += getInsp(p);
+                  expMap[p.exportadora].records.push(p);
+                });
+                const exportadoras = Object.keys(expMap).sort();
+
+                return (
+                  <div key={dia} className="card" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
+                    <div className="day-header">
+                      <div className="day-name">{dia}</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {dPend > 0  && <span className="badge badge-pending">⏳ {dPend} pendiente{dPend > 1 ? 's' : ''}</span>}
+                        {dErr > 0   && <span className="badge badge-error">⚠ {dErr} error{dErr > 1 ? 'es' : ''}</span>}
+                        {dErr === 0 && dPend === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
+                      </div>
                     </div>
-                  </div>
-
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Zona</th>
-                        <th>Exportadora</th>
-                        <th style={{ textAlign: 'right' }}>Planif.</th>
-                        <th style={{ textAlign: 'right' }}>Inspec.</th>
-                        <th style={{ textAlign: 'right' }}>Dif.</th>
-                        <th>Técnicos</th>
-                        <th>Estado</th>
-                        <th style={{ width: 115 }}>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {regs.map(p => {
-                        const diff    = getDiff(p);
-                        const pending = isPending(p);
-                        const error   = hasError(p);
-                        const rowCls  = pending ? 'row-pending' : (error ? 'row-error' : 'row-ok');
-                        return (
-                          <React.Fragment key={p.id}>
-                            <tr className={rowCls}>
-                              <td style={{ fontSize: 11, color: '#64748b' }}>{p.zona}</td>
-                              <td style={{ fontWeight: 600 }}>{p.exportadora}</td>
-                              <td style={{ textAlign: 'right' }}>{getPlan(p).toFixed(1)}</td>
-                              <td style={{ textAlign: 'right', color: pending ? '#94a3b8' : 'inherit' }}>
-                                {pending ? '—' : getInsp(p).toFixed(1)}
-                              </td>
-                              <td style={{ textAlign: 'right', fontWeight: 700,
-                                           color: pending ? '#94a3b8' : error ? '#dc2626' : '#16a34a' }}>
-                                {pending ? '—' : (error ? `-${Math.abs(diff).toFixed(1)}` : '✓')}
-                              </td>
-                              <td style={{ fontSize: 11, color: '#475569', maxWidth: 180 }}>
-                                {p.tecnicos.join(' / ')}
-                              </td>
-                              <td>
-                                {pending && <span className="badge badge-pending">⏳ Pendiente</span>}
-                                {error   && <span className="badge badge-error">⚠ Error</span>}
-                                {isOK(p) && <span className="badge badge-ok">✓ OK</span>}
-                              </td>
-                              <td>
-                                <div className="actions">
-                                  <button className="btn sm" title="Detalles" onClick={() => toggleExpand(p.id)}>
-                                    {expanded[p.id] ? '▼' : '▶'}
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Exportadora</th>
+                          <th style={{ textAlign: 'right' }}>Planif.</th>
+                          <th style={{ textAlign: 'right' }}>Inspec.</th>
+                          <th style={{ textAlign: 'right' }}>Dif.</th>
+                          <th>Estado</th>
+                          <th style={{ width: 50 }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {exportadoras.map(exp => {
+                          const g      = expMap[exp];
+                          const dif    = +(g.planif - g.inspec).toFixed(2);
+                          const allPend= g.pend === g.records.length;
+                          const somePend = g.pend > 0;
+                          const rowErr = !allPend && dif !== 0;
+                          const rowCls = allPend ? 'row-pending' : (rowErr ? 'row-error' : 'row-ok');
+                          const key    = `${dia}||${exp}`;
+                          return (
+                            <React.Fragment key={exp}>
+                              {/* Fila de exportadora (sumada) */}
+                              <tr className={rowCls}>
+                                <td style={{ fontWeight: 700 }}>{exp}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 600 }}>{g.planif.toFixed(1)}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 600, color: allPend ? '#94a3b8' : 'inherit' }}>
+                                  {allPend ? '—' : g.inspec.toFixed(1)}
+                                </td>
+                                <td style={{ textAlign: 'right', fontWeight: 700,
+                                  color: allPend ? '#94a3b8' : rowErr ? '#dc2626' : '#16a34a' }}>
+                                  {allPend ? '—' : (dif !== 0 ? `-${Math.abs(dif).toFixed(1)}` : '✓')}
+                                </td>
+                                <td>
+                                  {allPend   && <span className="badge badge-pending">⏳ Pendiente</span>}
+                                  {!allPend && somePend && <span className="badge badge-pending">⏳ {g.pend} pend.</span>}
+                                  {!somePend && rowErr  && <span className="badge badge-error">⚠ Error</span>}
+                                  {!somePend && !rowErr && <span className="badge badge-ok">✓ OK</span>}
+                                </td>
+                                <td>
+                                  <button className="btn sm" onClick={() => toggleExpand(key)}
+                                    title="Ver registros individuales">
+                                    {expanded[key] ? '▼' : '▶'}
                                   </button>
-                                  <button className="btn sm" title="Editar" onClick={() => setEditando(p)}>✏️</button>
-                                  <button className="btn sm danger" title="Eliminar" onClick={() => eliminar(p.id)}>✕</button>
-                                </div>
-                              </td>
-                            </tr>
-
-                            {/* Fila de detalle expandible */}
-                            {expanded[p.id] && (
-                              <tr className="row-detail">
-                                <td colSpan={8} style={{ padding: '12px 20px' }}>
-                                  {p.fecha && (
-                                    <div style={{ fontSize: 12, marginBottom: 4 }}>
-                                      <strong>Fecha:</strong> {formatFechaCorta(p.fecha)}
-                                    </div>
-                                  )}
-                                  <div style={{ fontSize: 12 }}>
-                                    <strong>Fincas:</strong> {p.fincas.join(', ')}
-                                  </div>
-                                  {error && p.motivo && (
-                                    <div style={{ padding: '8px 12px', background: '#fee2e2', borderRadius: 6, color: '#dc2626', fontSize: 12, marginTop: 8 }}>
-                                      <strong>Motivo:</strong> {p.motivo}
-                                    </div>
-                                  )}
-                                  {error && !p.motivo && (
-                                    <div style={{ padding: '6px 12px', background: '#fef3c7', borderRadius: 6, color: '#b45309', fontSize: 12, marginTop: 8 }}>
-                                      ⚠ Sin motivo registrado — usa ✏️ para añadirlo
-                                    </div>
-                                  )}
-                                  {pending && (
-                                    <div style={{ padding: '6px 12px', background: '#fffbeb', borderRadius: 6, color: '#b45309', fontSize: 12, marginTop: 8 }}>
-                                      ⏳ Inspeccionado aún no registrado — usa ✏️ para completar
-                                    </div>
-                                  )}
                                 </td>
                               </tr>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
 
-                      {/* Total del día */}
-                      <tr className="row-total">
-                        <td colSpan={2} style={{ fontSize: 11 }}>TOTAL {dia.toUpperCase()}</td>
-                        <td style={{ textAlign: 'right' }}>{dPlan.toFixed(1)}</td>
-                        <td style={{ textAlign: 'right' }}>{dInsp > 0 ? dInsp.toFixed(1) : '—'}</td>
-                        <td style={{ textAlign: 'right', color: dDiff !== 0 && dInsp > 0 ? '#dc2626' : '#16a34a' }}>
-                          {dInsp > 0 ? (dDiff !== 0 ? `-${Math.abs(dDiff).toFixed(1)}` : '✓') : '—'}
-                        </td>
-                        <td colSpan={3}></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              );
+                              {/* Sub-filas individuales (expandibles) */}
+                              {expanded[key] && g.records.map(p => {
+                                const pd  = isPending(p);
+                                const pe  = hasError(p);
+                                const pdiff = getDiff(p);
+                                return (
+                                  <tr key={p.id} className="row-sub">
+                                    <td style={{ paddingLeft: 24 }}>
+                                      <div>{p.fincas.join(', ')}</div>
+                                      <div style={{ color: '#94a3b8', marginTop: 2 }}>{p.tecnicos.join(' / ')}</div>
+                                      {pe && p.motivo && (
+                                        <div style={{ color: '#dc2626', marginTop: 2 }}>Motivo: {p.motivo}</div>
+                                      )}
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>{getPlan(p).toFixed(1)}</td>
+                                    <td style={{ textAlign: 'right', color: pd ? '#94a3b8' : 'inherit' }}>
+                                      {pd ? '—' : getInsp(p).toFixed(1)}
+                                    </td>
+                                    <td style={{ textAlign: 'right', fontWeight: 600,
+                                      color: pd ? '#94a3b8' : pe ? '#dc2626' : '#16a34a' }}>
+                                      {pd ? '—' : (pdiff !== 0 ? `-${Math.abs(pdiff).toFixed(1)}` : '✓')}
+                                    </td>
+                                    <td>
+                                      {pd && <span className="badge badge-pending">⏳</span>}
+                                      {pe && <span className="badge badge-error">⚠</span>}
+                                      {isOK(p) && <span className="badge badge-ok">✓</span>}
+                                    </td>
+                                    <td>
+                                      <div className="actions">
+                                        <button className="btn sm" onClick={() => setEditando(p)} title="Editar">✏️</button>
+                                        <button className="btn sm danger" onClick={() => eliminar(p.id)} title="Eliminar">✕</button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </React.Fragment>
+                          );
+                        })}
+
+                        {/* Total del día */}
+                        <tr className="row-total">
+                          <td>TOTAL {dia.toUpperCase()}</td>
+                          <td style={{ textAlign: 'right' }}>{dPlan.toFixed(1)}</td>
+                          <td style={{ textAlign: 'right' }}>{dInsp > 0 ? dInsp.toFixed(1) : '—'}</td>
+                          <td style={{ textAlign: 'right', color: dDiff !== 0 && dInsp > 0 ? '#dc2626' : '#16a34a' }}>
+                            {dInsp > 0 ? (dDiff !== 0 ? `-${Math.abs(dDiff).toFixed(1)}` : '✓') : '—'}
+                          </td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+
+              // ── Vista TOTAL: agrupar por zona ────────────────────────────
+              } else {
+                const zonaMap = {};
+                regs.forEach(p => {
+                  if (!zonaMap[p.zona]) zonaMap[p.zona] = { planif: 0, inspec: 0, pend: 0 };
+                  zonaMap[p.zona].planif += getPlan(p);
+                  if (isPending(p)) zonaMap[p.zona].pend++;
+                  else zonaMap[p.zona].inspec += getInsp(p);
+                });
+                const zonas = config.zonas.filter(z => zonaMap[z]);
+
+                return (
+                  <div key={dia} className="card" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
+                    <div className="day-header">
+                      <div className="day-name">{dia}</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {dPend > 0  && <span className="badge badge-pending">⏳ {dPend} pendiente{dPend > 1 ? 's' : ''}</span>}
+                        {dErr > 0   && <span className="badge badge-error">⚠ {dErr} error{dErr > 1 ? 'es' : ''}</span>}
+                        {dErr === 0 && dPend === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
+                      </div>
+                    </div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Zona</th>
+                          <th style={{ textAlign: 'right' }}>Planif.</th>
+                          <th style={{ textAlign: 'right' }}>Inspec.</th>
+                          <th style={{ textAlign: 'right' }}>Dif.</th>
+                          <th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {zonas.map(zona => {
+                          const g       = zonaMap[zona];
+                          const dif     = +(g.planif - g.inspec).toFixed(2);
+                          const allPend = g.pend > 0 && g.inspec === 0;
+                          const rowErr  = !allPend && dif !== 0;
+                          const rowCls  = allPend ? 'row-pending' : (rowErr ? 'row-error' : 'row-ok');
+                          return (
+                            <tr key={zona} className={rowCls}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => setFilterZona(zona)}
+                              title="Clic para ver el detalle de esta zona">
+                              <td style={{ fontWeight: 700, color: '#1d4ed8' }}>
+                                {zona} <span style={{ fontSize: 10, opacity: .7 }}>↗</span>
+                              </td>
+                              <td style={{ textAlign: 'right', fontWeight: 600 }}>{g.planif.toFixed(1)}</td>
+                              <td style={{ textAlign: 'right', fontWeight: 600, color: allPend ? '#94a3b8' : 'inherit' }}>
+                                {allPend ? '—' : g.inspec.toFixed(1)}
+                              </td>
+                              <td style={{ textAlign: 'right', fontWeight: 700,
+                                color: allPend ? '#94a3b8' : rowErr ? '#dc2626' : '#16a34a' }}>
+                                {allPend ? '—' : (dif !== 0 ? `-${Math.abs(dif).toFixed(1)}` : '✓')}
+                              </td>
+                              <td>
+                                {g.pend > 0  && <span className="badge badge-pending">⏳ {g.pend} pend.</span>}
+                                {g.pend === 0 && rowErr  && <span className="badge badge-error">⚠ Error</span>}
+                                {g.pend === 0 && !rowErr && <span className="badge badge-ok">✓ OK</span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                        {/* Total del día */}
+                        <tr className="row-total">
+                          <td>TOTAL {dia.toUpperCase()}</td>
+                          <td style={{ textAlign: 'right' }}>{dPlan.toFixed(1)}</td>
+                          <td style={{ textAlign: 'right' }}>{dInsp > 0 ? dInsp.toFixed(1) : '—'}</td>
+                          <td style={{ textAlign: 'right', color: dDiff !== 0 && dInsp > 0 ? '#dc2626' : '#16a34a' }}>
+                            {dInsp > 0 ? (dDiff !== 0 ? `-${Math.abs(dDiff).toFixed(1)}` : '✓') : '—'}
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              }
             })}
 
             {/* Gran total */}
