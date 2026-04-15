@@ -565,9 +565,8 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
         }
 
         // Procesar datos - UN REGISTRO POR FINCA/DÍA (CON MÚLTIPLES TÉCNICOS)
-        const records = [];
         const recordMap = {}; // Map: "expActual|finca|fecha" → record
-        const detectadas = {}; // Nuevas fincas/exportadoras
+        let detectadasTemp = {}; // Nuevas fincas/exportadoras
         let expActual = '';
         
         for (let i = headerRow + 1; i < rows.length; i++) {
@@ -642,7 +641,7 @@ function parsearExcelFile(file, fechaRef, config, autocompletarSemana = false) {
         
         // Convertir map a array
         const recordsArray = Object.values(recordMap);
-        const detectadas = {}; // Nuevas fincas/exportadoras
+        const detectadas = {}; // Nuevas fincas/exportadoras (resultado final)
 
         // Detectar zona por exportadoras
         const todasExp = [...new Set(recordsArray.map(r => r.expActual))];
