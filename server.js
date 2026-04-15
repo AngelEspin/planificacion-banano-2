@@ -2,7 +2,6 @@ import express from "express";
 import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { google } from "googleapis";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -13,38 +12,9 @@ app.use(express.static("public"));
 const DATA_DIR = join(__dirname, "data");
 const FINCAS_FILE = join(DATA_DIR, "fincas.json");
 const TECNICOS_FILE = join(DATA_DIR, "tecnicos.json");
-const CREDENTIALS_FILE = join(__dirname, "google-credentials.json");
 
-// ID de tu Google Sheet (extraído de la URL)
-const SPREADSHEET_ID = "1FvtccGpyIfQw0l3CeD0-WTdyJ5MN37dSx8osUbo2wIw";
-const SHEET_NAME = "Registros";
-
-// ── Configurar Google Sheets API ──
-let sheets;
-try {
-  let credentials;
-  if (process.env.GOOGLE_CREDENTIALS) {
-    // En producción (Railway): leer desde variable de entorno
-    console.log("📋 Leyendo credenciales desde variable de entorno...");
-    credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-  } else if (existsSync(CREDENTIALS_FILE)) {
-    // En desarrollo local: leer desde archivo
-    console.log("📋 Leyendo credenciales desde archivo local...");
-    credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, "utf-8"));
-  } else {
-    throw new Error("No se encontraron credenciales de Google Sheets");
-  }
-  
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-  sheets = google.sheets({ version: "v4", auth });
-  console.log("✅ Google Sheets API conectada correctamente");
-} catch (e) {
-  console.error("❌ Error al conectar Google Sheets:", e.message);
-  sheets = null;
-}
+// URL de tu Apps Script
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby72YTvroCx71t7H7dSGeQ-D3FYZdGaXWAqEA3RCiq9BEpCjS1Est0ypBGPlH7NuD3-eg/exec";
 
 function loadJSON(path, fallback = {}) {
   try {
@@ -57,35 +27,33 @@ function loadJSON(path, fallback = {}) {
   return fallback;
 }
 
-// ── Leer contenedores desde Google Sheets ──
+// ── Leer contenedores desde Google Sheets (Apps Script) ──
 async function leerContenedores() {
-  if (!sheets) {
-    console.error("⚠️ Google Sheets no está conectado, retornando array vacío");
-    return [];
-  }
-  
   try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A2:L`, // Desde fila 2 (después de headers)
-    });
-
-    const rows = response.data.values || [];
-    const contenedores = rows.map(row => ({
-      id: row[0] || "",
-      fecha: row[1] || "",
-      semana: row[2] || "",
-      dia: row[3] || "",
-      zona: row[4] || "",
-      exportadora: row[5] || "",
-      fincas: row[6] ? row[6].split(", ") : [],
-      planificado: parseFloat(row[7]) || 0,
-      inspeccionado: row[8] ? parseFloat(row[8]) : null,
-      tecnicos: row[9] ? row[9].split(", ") : [],
-      motivo: row[10] || "",
-      timestamp: row[11] || "",
+    const response = await fetch(APPS_SCRIPT_URL);
+    const data = await response.json();
+    
+    if (data.error) {
+      console.error("Error desde Apps Script:", data.error);
+      return [];
+    }
+    
+    // Convertir datos del sheet al formato esperado
+    const contenedores = (data.contenedores || []).map(c => ({
+      id: c.ID || c.id || "",
+      fecha: c.Fecha || c.fecha || "",
+      semana: c.Semana || c.semana || "",
+      dia: c.Día || c.dia || "",
+      zona: c.Zona || c.zona || "",
+      exportadora: c.Exportadora || c.exportadora || "",
+      fincas: typeof c.Fincas === 'string' ? c.Fincas.split(', ') : (c.fincas || []),
+      planificado: parseFloat(c.Planificado || c.planificado) || 0,
+      inspeccionado: c.Inspeccionado || c.inspeccionado ? parseFloat(c.Inspeccionado || c.inspeccionado) : null,
+      tecnicos: typeof c.Técnicos === 'string' ? c.Técnicos.split(', ') : (c.tecnicos || []),
+      motivo: c.Motivo || c.motivo || "",
+      timestamp: c.Timestamp || c.timestamp || "",
     }));
-
+    
     console.log(`✅ Leídos ${contenedores.length} registros desde Google Sheets`);
     return contenedores;
   } catch (e) {
@@ -94,47 +62,24 @@ async function leerContenedores() {
   }
 }
 
-// ── Escribir contenedores a Google Sheets ──
+// ── Escribir contenedores a Google Sheets (Apps Script) ──
 async function escribirContenedores(contenedores) {
-  if (!sheets) {
-    console.error("⚠️ Google Sheets no está conectado, no se pueden guardar datos");
-    return false;
-  }
-  
   try {
-    // Convertir contenedores a formato de filas
-    const rows = contenedores.map(c => [
-      c.id,
-      c.fecha,
-      c.semana,
-      c.dia,
-      c.zona,
-      c.exportadora,
-      c.fincas.join(", "),
-      c.planificado,
-      c.inspeccionado !== null ? c.inspeccionado : "",
-      c.tecnicos.join(", "),
-      c.motivo || "",
-      c.timestamp,
-    ]);
-
-    // Limpiar sheet y escribir todo de nuevo
-    await sheets.spreadsheets.values.clear({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A2:L`,
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contenedores }),
     });
-
-    if (rows.length > 0) {
-      await sheets.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A2`,
-        valueInputOption: "RAW",
-        resource: { values: rows },
-      });
+    
+    const result = await response.json();
+    
+    if (result.ok) {
+      console.log(`✅ ${contenedores.length} registros guardados en Google Sheets`);
+      return true;
+    } else {
+      console.error("Error desde Apps Script:", result.error);
+      return false;
     }
-
-    console.log(`✅ ${rows.length} registros guardados en Google Sheets`);
-    return true;
   } catch (e) {
     console.error("Error escribiendo en Google Sheets:", e.message);
     return false;
@@ -150,11 +95,10 @@ app.get("/api/config", (req, res) => {
 });
 
 app.post("/api/config", (req, res) => {
-  // Config se mantiene en archivos locales (fincas y técnicos)
   res.json({ ok: true, message: "Config no se guarda en Sheets" });
 });
 
-// ── API: Contenedores (desde Google Sheets) ──
+// ── API: Contenedores (desde Google Sheets via Apps Script) ──
 app.get("/api/contenedores", async (req, res) => {
   const contenedores = await leerContenedores();
   res.json({ contenedores });
@@ -173,4 +117,5 @@ app.get("/health", (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log("✅ Servidor corriendo en puerto", port);
+  console.log("📊 Conectado a Google Sheets via Apps Script");
 });
