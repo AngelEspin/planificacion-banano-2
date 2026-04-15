@@ -25,10 +25,14 @@ try {
   let credentials;
   if (process.env.GOOGLE_CREDENTIALS) {
     // En producción (Railway): leer desde variable de entorno
+    console.log("📋 Leyendo credenciales desde variable de entorno...");
     credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-  } else {
+  } else if (existsSync(CREDENTIALS_FILE)) {
     // En desarrollo local: leer desde archivo
+    console.log("📋 Leyendo credenciales desde archivo local...");
     credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, "utf-8"));
+  } else {
+    throw new Error("No se encontraron credenciales de Google Sheets");
   }
   
   const auth = new google.auth.GoogleAuth({
@@ -36,9 +40,10 @@ try {
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
   sheets = google.sheets({ version: "v4", auth });
-  console.log("✅ Google Sheets API conectada");
+  console.log("✅ Google Sheets API conectada correctamente");
 } catch (e) {
   console.error("❌ Error al conectar Google Sheets:", e.message);
+  sheets = null;
 }
 
 function loadJSON(path, fallback = {}) {
@@ -54,6 +59,11 @@ function loadJSON(path, fallback = {}) {
 
 // ── Leer contenedores desde Google Sheets ──
 async function leerContenedores() {
+  if (!sheets) {
+    console.error("⚠️ Google Sheets no está conectado, retornando array vacío");
+    return [];
+  }
+  
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
@@ -76,6 +86,7 @@ async function leerContenedores() {
       timestamp: row[11] || "",
     }));
 
+    console.log(`✅ Leídos ${contenedores.length} registros desde Google Sheets`);
     return contenedores;
   } catch (e) {
     console.error("Error leyendo Google Sheets:", e.message);
@@ -85,6 +96,11 @@ async function leerContenedores() {
 
 // ── Escribir contenedores a Google Sheets ──
 async function escribirContenedores(contenedores) {
+  if (!sheets) {
+    console.error("⚠️ Google Sheets no está conectado, no se pueden guardar datos");
+    return false;
+  }
+  
   try {
     // Convertir contenedores a formato de filas
     const rows = contenedores.map(c => [
