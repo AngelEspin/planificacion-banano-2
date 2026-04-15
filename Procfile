@@ -1,1 +1,1 @@
-web: cd planificacion-banano && npm start
+web: npm start
