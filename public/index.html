@@ -7,6 +7,417 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:#F5F7FA;color:#1a1a2e;min-height:100vh}
+  #app{display:flex;flex-direction:column;min-height:100vh}
+  
+  .topbar{background:#0F2040;color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;gap:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .topbar-logo{font-size:15px;font-weight:600;letter-spacing:.02em;margin-right:32px}
+  .topbar-logo span{color:#F9A825}
+  .nav-tab{background:transparent;border:none;color:rgba(255,255,255,.65);padding:0 18px;height:52px;cursor:pointer;font-size:13px;border-bottom:3px solid transparent;transition:.15s}
+  .nav-tab:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .nav-tab.active{color:#fff;border-bottom-color:#F9A825;font-weight:500}
+  
+  .main{flex:1;padding:20px 24px;max-width:1400px;width:100%;margin:0 auto}
+  
+  .card{background:#fff;border-radius:10px;border:1px solid #E2E8F0;padding:18px 20px;margin-bottom:16px}
+  .card-title{font-size:14px;font-weight:600;margin-bottom:14px;color:#0F2040}
+  
+  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  
+  .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;color:#334155;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;transition:.12s}
+  .btn:hover{background:#F1F5F9;border-color:#94A3B8}
+  .btn.primary{background:#0F2040;color:#fff;border-color:#0F2040}
+  .btn.primary:hover{background:#1a3560}
+  .btn.amber{background:#F9A825;color:#1a1a2e;border-color:#F9A825}
+  .btn.amber:hover{background:#e09720}
+  .btn.sm{padding:4px 9px;font-size:11px}
+  .btn.danger{color:#dc2626;border-color:#fca5a5}
+  .btn.danger:hover{background:#FEE2E2}
+  
+  select{padding:7px 10px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;color:#334155;font-size:13px;cursor:pointer;min-width:180px}
+  input[type=text],input[type=number]{padding:7px 10px;border:1px solid #CBD5E1;border-radius:7px;font-size:13px;background:#fff;color:#1a1a2e}
+  input[type=text]:focus,input[type=number]:focus{outline:none;border-color:#0F2040;box-shadow:0 0 0 3px rgba(15,32,64,.08)}
+  
+  .form-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+  .form-row label{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase}
+  
+  .accordion{border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:10px}
+  .accordion-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#F8FAFC;cursor:pointer;user-select:none;transition:.12s}
+  .accordion-header:hover{background:#EFF6FF}
+  .accordion-header h3{font-size:13px;font-weight:600;color:#0F2040}
+  .accordion-body{padding:12px 14px;border-top:1px solid #E2E8F0;display:none}
+  .accordion-body.open{display:block}
+  
+  .chip{display:inline-block;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:16px;padding:4px 10px;font-size:11px;color:#1e40af;font-weight:500;margin-right:6px;margin-bottom:4px}
+  
+  .tag-ok{display:inline-block;background:#DCFCE7;color:#166534;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600}
+  .tag-warn{display:inline-block;background:#FEF9C3;color:#854d0e;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600}
+  .tag-bad{display:inline-block;background:#FEE2E2;color:#991b1b;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600}
+  
+  .list-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:8px;background:#fff}
+  .list-item:hover{background:#F8FAFC}
+  
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+  .stat-box{background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:12px;text-align:center}
+  .stat-val{font-size:24px;font-weight:700;color:#0F2040;margin-bottom:4px}
+  .stat-label{font-size:11px;color:#64748b}
+  
+  .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:10px;padding:24px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto}
+  .modal h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#0F2040}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+function App() {
+  const [tab, setTab] = useState('add');
+  const [config, setConfig] = useState(null);
+  const [contenedores, setContenedores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Nuevo contenedor
+  const [newContainer, setNewContainer] = useState({
+    numero: '',
+    zona: '',
+    exportadora: '',
+    fincas: [],
+    tecnicos: [],
+    motivo: '',
+    completado: true
+  });
+  
+  const [showFincasModal, setShowFincasModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedContainer, setSelectedContainer] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/config').then(r => r.json()).then(data => {
+      setConfig(data);
+      setLoading(false);
+    });
+    
+    fetch('/api/semanas').then(r => r.json()).then(data => {
+      setContenedores(data.contenedores || []);
+    });
+  }, []);
+
+  const saveContenedores = (arr) => {
+    setContenedores(arr);
+    setSaving(true);
+    fetch('/api/semanas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contenedores: arr })
+    }).then(() => setSaving(false));
+  };
+
+  const getFincasDeExportadora = () => {
+    if (!config || !newContainer.zona || !newContainer.exportadora) return [];
+    const zona = config.monoZonas[newContainer.zona];
+    if (!zona) return [];
+    return zona.exportadoras[newContainer.exportadora] || [];
+  };
+
+  const addContenedor = () => {
+    if (!newContainer.numero || !newContainer.zona || newContainer.fincas.length === 0 || newContainer.tecnicos.length === 0) {
+      alert('Completa: número, zona, fincas y técnicos');
+      return;
+    }
+    const cont = {
+      id: Math.random().toString(36).slice(2),
+      ...newContainer,
+      timestamp: new Date().toISOString()
+    };
+    saveContenedores([...contenedores, cont]);
+    setNewContainer({
+      numero: '',
+      zona: '',
+      exportadora: '',
+      fincas: [],
+      tecnicos: [],
+      motivo: '',
+      completado: true
+    });
+  };
+
+  const deleteContenedor = (id) => {
+    if (confirm('¿Eliminar este contenedor?')) {
+      saveContenedores(contenedores.filter(c => c.id !== id));
+    }
+  };
+
+  const toggleFinca = (finca) => {
+    const currently = newContainer.fincas.includes(finca);
+    setNewContainer({
+      ...newContainer,
+      fincas: currently ? newContainer.fincas.filter(f => f !== finca) : [...newContainer.fincas, finca]
+    });
+  };
+
+  const toggleTecnico = (tecnico) => {
+    const currently = newContainer.tecnicos.includes(tecnico);
+    if (currently) {
+      setNewContainer({
+        ...newContainer,
+        tecnicos: newContainer.tecnicos.filter(t => t !== tecnico)
+      });
+    } else if (newContainer.tecnicos.length < 2) {
+      setNewContainer({
+        ...newContainer,
+        tecnicos: [...newContainer.tecnicos, tecnico]
+      });
+    }
+  };
+
+  if (loading || !config) return <div style={{padding: 24}}>Cargando...</div>;
+
+  const fincasDeExportadora = getFincasDeExportadora();
+
+  return (
+    <div id="app">
+      <div className="topbar">
+        <div className="topbar-logo">Planificación <span>Banano</span></div>
+        <button className={`nav-tab ${tab === 'add' ? 'active' : ''}`} onClick={() => setTab('add')}>➕ Agregar</button>
+        <button className={`nav-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
+        {saving && <div style={{marginLeft: 'auto', color: '#F9A825'}}>Guardando...</div>}
+      </div>
+
+      <div className="main">
+        {tab === 'add' && (
+          <div className="card">
+            <div className="card-title">Nuevo Contenedor</div>
+            
+            <div className="form-row">
+              <label>Número de Contenedor</label>
+              <input type="text" placeholder="Ej: 12345 o 12345.5" value={newContainer.numero} 
+                onChange={e => setNewContainer({...newContainer, numero: e.target.value})}/>
+            </div>
+
+            <div className="form-row">
+              <label>Zona</label>
+              <select value={newContainer.zona} onChange={e => {
+                setNewContainer({...newContainer, zona: e.target.value, exportadora: '', fincas: []});
+              }}>
+                <option value="">-- Selecciona una zona --</option>
+                {config.zonas.map(z => <option key={z} value={z}>{z}</option>)}
+              </select>
+            </div>
+
+            {newContainer.zona && (
+              <div className="form-row">
+                <label>Exportadora</label>
+                <select value={newContainer.exportadora} onChange={e => setNewContainer({...newContainer, exportadora: e.target.value, fincas: []})}>
+                  <option value="">-- Selecciona exportadora --</option>
+                  {Object.keys(config.monoZonas[newContainer.zona]?.exportadoras || {}).map(exp => 
+                    <option key={exp} value={exp}>{exp}</option>
+                  )}
+                </select>
+              </div>
+            )}
+
+            {newContainer.exportadora && (
+              <div className="form-row">
+                <label>Fincas ({newContainer.fincas.length} seleccionadas)</label>
+                <button className="btn primary" onClick={() => setShowFincasModal(true)}>
+                  Seleccionar Fincas →
+                </button>
+                {newContainer.fincas.length > 0 && (
+                  <div>
+                    {newContainer.fincas.map(f => (
+                      <span key={f} className="chip">{f}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="form-row">
+              <label>Técnicos ({newContainer.tecnicos.length}/2)</label>
+              <select onChange={e => {
+                if (e.target.value && !newContainer.tecnicos.includes(e.target.value) && newContainer.tecnicos.length < 2) {
+                  setNewContainer({...newContainer, tecnicos: [...newContainer.tecnicos, e.target.value]});
+                  e.target.value = '';
+                }
+              }}>
+                <option value="">Buscar y agregar técnico...</option>
+                {config.tecnicos.filter(t => !newContainer.tecnicos.includes(t)).map(t => 
+                  <option key={t} value={t}>{t}</option>
+                )}
+              </select>
+              {newContainer.tecnicos.length > 0 && (
+                <div>
+                  {newContainer.tecnicos.map(t => (
+                    <div key={t} className="list-item" style={{marginBottom: 6}}>
+                      <span>{t}</span>
+                      <button className="btn sm danger" onClick={() => setNewContainer({...newContainer, tecnicos: newContainer.tecnicos.filter(x => x !== t)})}>✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="form-row">
+              <label>Estado</label>
+              <select value={newContainer.completado ? 'completado' : 'incompleto'} onChange={e => setNewContainer({...newContainer, completado: e.target.value === 'completado'})}>
+                <option value="completado">✓ Completado</option>
+                <option value="incompleto">✗ Incompleto</option>
+              </select>
+            </div>
+
+            {!newContainer.completado && (
+              <div className="form-row">
+                <label>Razón de no completación</label>
+                <input type="text" placeholder="Ej: Falta de técnicos, Clima, etc." value={newContainer.motivo}
+                  onChange={e => setNewContainer({...newContainer, motivo: e.target.value})}/>
+              </div>
+            )}
+
+            <button className="btn amber" onClick={addContenedor} style={{marginTop: 14, width: '100%'}}>
+              ✓ Agregar Contenedor
+            </button>
+          </div>
+        )}
+
+        {tab === 'resumen' && (
+          <div>
+            <div className="stat-grid">
+              <div className="stat-box">
+                <div className="stat-val">{contenedores.length}</div>
+                <div className="stat-label">Contenedores</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-val">{contenedores.filter(c => c.completado).length}</div>
+                <div className="stat-label">Completados</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-val">{contenedores.filter(c => !c.completado).length}</div>
+                <div className="stat-label">Incompletos</div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Contenedores por Zona</div>
+              {config.zonas.map(zona => {
+                const contsDeLaZona = contenedores.filter(c => c.zona === zona);
+                if (contsDeLaZona.length === 0) return null;
+                return (
+                  <div key={zona} className="accordion">
+                    <div className="accordion-header" onClick={e => {
+                      e.currentTarget.nextElementSibling?.classList.toggle('open');
+                    }}>
+                      <h3>{zona}</h3>
+                      <span>{contsDeLaZona.length} contenedores</span>
+                    </div>
+                    <div className="accordion-body">
+                      {contsDeLaZona.map(c => (
+                        <div key={c.id} className="list-item">
+                          <div>
+                            <div style={{fontWeight: 600, marginBottom: 4}}>#{c.numero}</div>
+                            <div style={{fontSize: 11, color: '#64748b', marginBottom: 6}}>
+                              {c.exportadora} • {c.fincas.length} fincas • {c.tecnicos.length} técnicos
+                            </div>
+                            {c.completado ? <span className="tag-ok">✓ Completado</span> : <span className="tag-bad">✗ Incompleto: {c.motivo}</span>}
+                          </div>
+                          <div style={{display: 'flex', gap: 8}}>
+                            <button className="btn sm" onClick={() => { setSelectedContainer(c); setShowDetailsModal(true); }}>
+                              Detalles
+                            </button>
+                            <button className="btn sm danger" onClick={() => deleteContenedor(c.id)}>Eliminar</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modal de Fincas */}
+      <div className={`modal-overlay ${showFincasModal ? 'open' : ''}`} onClick={() => setShowFincasModal(false)}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          <h2>Seleccionar Fincas · {newContainer.exportadora}</h2>
+          <div style={{marginTop: 16}}>
+            {fincasDeExportadora.map(finca => (
+              <div key={finca} className="list-item" onClick={() => toggleFinca(finca)}>
+                <span>{finca}</span>
+                <input type="checkbox" checked={newContainer.fincas.includes(finca)} readOnly style={{cursor: 'pointer'}}/>
+              </div>
+            ))}
+          </div>
+          <button className="btn primary" onClick={() => setShowFincasModal(false)} style={{marginTop: 16, width: '100%'}}>
+            Listo
+          </button>
+        </div>
+      </div>
+
+      {/* Modal de Detalles */}
+      <div className={`modal-overlay ${showDetailsModal ? 'open' : ''}`} onClick={() => setShowDetailsModal(false)}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          {selectedContainer && (
+            <div>
+              <h2>Detalles · Contenedor #{selectedContainer.numero}</h2>
+              <div style={{marginTop: 16}}>
+                <div className="form-row">
+                  <label>Zona</label>
+                  <div style={{padding: 8, background: '#F8FAFC', borderRadius: 6}}>{selectedContainer.zona}</div>
+                </div>
+                <div className="form-row">
+                  <label>Exportadora</label>
+                  <div style={{padding: 8, background: '#F8FAFC', borderRadius: 6}}>{selectedContainer.exportadora}</div>
+                </div>
+                <div className="form-row">
+                  <label>Fincas ({selectedContainer.fincas.length})</label>
+                  <div>{selectedContainer.fincas.map(f => <span key={f} className="chip">{f}</span>)}</div>
+                </div>
+                <div className="form-row">
+                  <label>Técnicos ({selectedContainer.tecnicos.length})</label>
+                  <div>{selectedContainer.tecnicos.map(t => <span key={t} className="chip">{t}</span>)}</div>
+                </div>
+                <div className="form-row">
+                  <label>Estado</label>
+                  <div>{selectedContainer.completado ? <span className="tag-ok">✓ Completado</span> : <span className="tag-bad">✗ Incompleto</span>}</div>
+                </div>
+                {!selectedContainer.completado && (
+                  <div className="form-row">
+                    <label>Razón</label>
+                    <div style={{padding: 8, background: '#FEE2E2', borderRadius: 6, color: '#991b1b'}}>{selectedContainer.motivo}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <button className="btn primary" onClick={() => setShowDetailsModal(false)} style={{marginTop: 16, width: '100%'}}>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('app'));
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planificación Semanal · Contenedores</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:#F5F7FA;color:#1a1a2e;min-height:100vh}
   #root{display:flex;flex-direction:column;min-height:100vh}
 
   /* Top bar */
