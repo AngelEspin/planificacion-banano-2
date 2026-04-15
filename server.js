@@ -22,7 +22,15 @@ const SHEET_NAME = "Registros";
 // ── Configurar Google Sheets API ──
 let sheets;
 try {
-  const credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, "utf-8"));
+  let credentials;
+  if (process.env.GOOGLE_CREDENTIALS) {
+    // En producción (Railway): leer desde variable de entorno
+    credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  } else {
+    // En desarrollo local: leer desde archivo
+    credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, "utf-8"));
+  }
+  
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
