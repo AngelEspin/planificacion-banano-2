@@ -128,6 +128,13 @@
     .row-sub td { padding: 8px 12px 8px 28px; border-bottom: 1px solid #f1f5f9; font-size: 11px; color: #475569; }
     .row-sub:last-child td { border-bottom: none; }
 
+    /* ── Import area ── */
+    .upload-area { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 40px 20px; text-align: center; color: #64748b; cursor: pointer; transition: .15s; font-size: 14px; font-weight: 500; background: #fafafa; }
+    .upload-area:hover { border-color: #0f2040; background: #f1f5f9; color: #0f2040; }
+    .upload-area.drag-over { border-color: #f9a825; background: #fffbeb; color: #b45309; }
+    .import-table td { vertical-align: middle; }
+    .import-table input[type="number"] { width: 70px; padding: 4px 6px; font-size: 12px; }
+
     /* ── Misc ── */
     .saving-dot { font-size: 11px; color: #f9a825; animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
@@ -140,6 +147,7 @@
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="text/babel">
 const { useState, useEffect } = React;
 
@@ -471,6 +479,342 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
   );
 }
 
+// ─── Helper: Normalizar nombre (fuzzy match) ──────────────────────────────────
+function normalizarNombre(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+// ─── Helper: Buscar técnico fuzzy ─────────────────────────────────────────────
+function buscarTecnicoFuzzy(entrada, tecnicos) {
+  if (!entrada || !tecnicos) return null;
+  const norm = normalizarNombre(entrada);
+  const palabras = norm.split(/\s+/);
+  return tecnicos.find(t => {
+    const normT = normalizarNombre(t);
+    return palabras.every(p => normT.includes(p));
+  });
+}
+
+// ─── Helper: Parsear Excel ────────────────────────────────────────────────────
+function parsearExcelFile(file, fechaRef, config) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        
+        // Encontrar fila de headers (contiene LUNES, MARTES, etc.)
+        const diaEspa = { 'LUNES': 0, 'MARTES': 1, 'MIÉRCOLES': 2, 'MIÉ': 2, 'MIERCOLES': 2, 'JUEVES': 3, 'VIERNES': 4, 'VIERNES': 4, 'SÁBADO': 5, 'SABADO': 5, 'DOMINGO': 6 };
+        let headerRow = null;
+        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+          if (rows[i].some(cell => diaEspa[normalizarNombre(cell).toUpperCase()] !== undefined)) {
+            headerRow = i;
+            break;
+          }
+        }
+        if (headerRow === null) reject(new Error('No se encontraron cabeceras de día (LUNES, MARTES, etc.)'));
+
+        const headers = rows[headerRow].map(h => normalizarNombre(h));
+        const colExp = headers.findIndex(h => h.includes('exportadora'));
+        const colFinca = headers.findIndex(h => h.includes('hacienda'));
+        const colDias = {};
+        const diaMap = { 'lunes': 0, 'martes': 1, 'miercoles': 2, 'mie': 2, 'jueves': 3, 'viernes': 4, 'sabado': 5, 'domingo': 6 };
+        for (let h of Object.keys(diaMap)) {
+          const idx = headers.findIndex(x => x === h || x === h.substring(0, 3));
+          if (idx >= 0) colDias[h] = idx;
+        }
+
+        if (colExp < 0 || colFinca < 0) reject(new Error('No se encontraron columnas EXPORTADORA o HACIENDA'));
+
+        // Procesar datos
+        const records = [];
+        const detectadas = {}; // Nuevas fincas detectadas
+        let expActual = '';
+        
+        for (let i = headerRow + 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || !row[colExp] || !row[colFinca]) continue;
+          
+          if (row[colExp]) expActual = row[colExp].trim();
+          const finca = row[colFinca].trim();
+          
+          for (const [dia, col] of Object.entries(colDias)) {
+            const tecnico = row[col]?.trim();
+            if (!tecnico) continue;
+            
+            // Calcular fecha real
+            const dayNum = diaMap[dia];
+            const d = new Date(fechaRef);
+            const dow = d.getDay() || 7;
+            const monday = new Date(d);
+            monday.setDate(d.getDate() - dow + 1);
+            monday.setDate(monday.getDate() + dayNum);
+            const fecha = monday.toISOString().split('T')[0];
+            
+            records.push({ expActual, finca, tecnico, fecha, zona: null });
+          }
+        }
+
+        // Detectar zona por exportadoras
+        const todasExp = [...new Set(records.map(r => r.expActual))];
+        const zonas = config.zonas || [];
+        const puntos = {};
+        zonas.forEach(z => puntos[z] = 0);
+        
+        todasExp.forEach(exp => {
+          const normExp = normalizarNombre(exp);
+          zonas.forEach(z => {
+            const expsZona = Object.keys(config.fincas[z] || {});
+            if (expsZona.some(e => normalizarNombre(e) === normExp)) {
+              puntos[z]++;
+            }
+          });
+        });
+
+        const zonaDet = Object.entries(puntos).sort(([a, b], [c, d]) => d - b)[0]?.[0] || '';
+
+        // Mapear técnicos y fincas
+        records.forEach(r => {
+          r.zona = zonaDet;
+          
+          // Buscar exportadora canónica
+          const expsZona = Object.keys(config.fincas[r.zona] || {});
+          r.exportadora = expsZona.find(e => normalizarNombre(e) === normalizarNombre(r.expActual)) || r.expActual;
+          
+          // Buscar si finca existe en config
+          const fincasExp = config.fincas[r.zona]?.[r.exportadora] || [];
+          if (!fincasExp.includes(r.finca)) {
+            if (!detectadas[r.zona]) detectadas[r.zona] = {};
+            if (!detectadas[r.zona][r.exportadora]) detectadas[r.zona][r.exportadora] = [];
+            if (!detectadas[r.zona][r.exportadora].includes(r.finca)) {
+              detectadas[r.zona][r.exportadora].push(r.finca);
+            }
+          }
+          
+          // Buscar técnico
+          r.tecnicoDetectado = buscarTecnicoFuzzy(r.tecnico, config.tecnicos) || r.tecnico;
+        });
+
+        resolve({ records, detectadas });
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ─── Componente TabImportar ──────────────────────────────────────────────────
+function TabImportar({ config, setConfig, onImportar }) {
+  const [fechaRef, setFechaRef] = useState('');
+  const [archivo, setArchivo] = useState(null);
+  const [parseando, setParseando] = useState(false);
+  const [registrosParsea, setRegistrosParsea] = useState([]);
+  const [detectadasNuevas, setDetectadasNuevas] = useState({});
+  const [cambios, setCambios] = useState({});
+  const [importando, setImportando] = useState(false);
+
+  const handleFile = async (file) => {
+    if (!fechaRef) {
+      alert('Selecciona una fecha primero');
+      return;
+    }
+    setParseando(true);
+    try {
+      const { records, detectadas } = await parsearExcelFile(file, fechaRef, config);
+      setRegistrosParsea(records);
+      setDetectadasNuevas(detectadas);
+      setCambios({});
+    } catch (err) {
+      alert('Error al parsear Excel: ' + err.message);
+    }
+    setParseando(false);
+  };
+
+  const handleDragDrop = (e) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  };
+
+  const handleChangePlanif = (idx, val) => {
+    setCambios(prev => ({ ...prev, [idx]: { ...prev[idx], planificado: +val } }));
+  };
+
+  const handleImportar = async () => {
+    if (registrosParsea.length === 0) {
+      alert('No hay registros para importar');
+      return;
+    }
+    
+    setImportando(true);
+    try {
+      // Crear planes
+      const planes = registrosParsea.map((r, idx) => {
+        const customPlan = cambios[idx]?.planificado;
+        return {
+          id: Date.now() + '-' + idx + '-' + Math.random(),
+          fecha: r.fecha,
+          dia: getDia(r.fecha),
+          semana: fechaAISOWeek(r.fecha),
+          zona: r.zona,
+          exportadora: r.exportadora,
+          fincas: [r.finca],
+          planificado: customPlan ?? 1,
+          inspeccionado: null,
+          tecnicos: r.tecnicoDetectado ? [r.tecnicoDetectado] : [],
+          motivo: '',
+          timestamp: new Date().toISOString()
+        };
+      });
+
+      // Nuevas fincas para config
+      const nuevosFincas = { ...detectadasNuevas };
+
+      onImportar(planes, nuevosFincas);
+      setRegistrosParsea([]);
+      setArchivo(null);
+      setCambios({});
+      setDetectadasNuevas({});
+      alert('✓ ' + planes.length + ' registros importados correctamente');
+    } catch (err) {
+      alert('Error al importar: ' + err.message);
+    }
+    setImportando(false);
+  };
+
+  return (
+    <div className="card">
+      <div className="card-body">
+        <div className="card-title">📥 Importar distribuciones desde Excel</div>
+
+        {/* Paso 1: Seleccionar fecha */}
+        <div className="form-group" style={{ marginBottom: 24 }}>
+          <label>Semana de la distribución</label>
+          <input
+            type="date"
+            value={fechaRef}
+            onChange={e => setFechaRef(e.target.value)}
+            style={{ maxWidth: 200 }}
+          />
+          {fechaRef && (
+            <span className="badge badge-blue" style={{ fontSize: 12, margin: '8px 0' }}>
+              {getWeekLabel(fechaAISOWeek(fechaRef))}
+            </span>
+          )}
+        </div>
+
+        {/* Paso 2: Upload area */}
+        {registrosParsea.length === 0 ? (
+          <div
+            className="upload-area"
+            onClick={() => document.getElementById('file-input-importar').click()}
+            onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }}
+            onDragLeave={e => e.currentTarget.classList.remove('drag-over')}
+            onDrop={handleDragDrop}
+          >
+            <div style={{ fontSize: 24, marginBottom: 8 }}>📄</div>
+            <div>Arrastra tu Excel aquí o haz clic para seleccionar</div>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>Soporta .xlsx, .xls</div>
+            <input
+              id="file-input-importar"
+              type="file"
+              hidden
+              accept=".xlsx,.xls"
+              onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
+            />
+          </div>
+        ) : (
+          <div>
+            {/* Preview */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, color: '#0f2040' }}>
+                📋 Preview ({registrosParsea.length} registros detectados)
+              </div>
+              
+              {/* Nuevas fincas detectadas */}
+              {Object.keys(detectadasNuevas).length > 0 && (
+                <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 6, padding: 12, marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#b45309', marginBottom: 6 }}>⚠ Nuevas fincas detectadas:</div>
+                  {Object.entries(detectadasNuevas).map(([z, exps]) => (
+                    <div key={z} style={{ fontSize: 11, color: '#92400e', marginBottom: 4 }}>
+                      <strong>{z}:</strong> {Object.entries(exps).map(([e, fs]) => `${e}: ${fs.join(', ')}`).join(' | ')}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Tabla preview */}
+              <table className="import-table">
+                <thead>
+                  <tr>
+                    <th>Zona</th>
+                    <th>Exportadora</th>
+                    <th>Finca</th>
+                    <th>Fecha</th>
+                    <th style={{ textAlign: 'right' }}>Planif.</th>
+                    <th>Técnico</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registrosParsea.map((r, idx) => (
+                    <tr key={idx}>
+                      <td>{r.zona}</td>
+                      <td>{r.exportadora}</td>
+                      <td>{r.finca}</td>
+                      <td>{r.fecha}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={cambios[idx]?.planificado ?? 1}
+                          onChange={e => handleChangePlanif(idx, e.target.value)}
+                        />
+                      </td>
+                      <td style={{ fontSize: 11, color: '#64748b' }}>{r.tecnicoDetectado || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Botones de acción */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="btn amber"
+                onClick={handleImportar}
+                disabled={importando}
+              >
+                {importando ? 'Importando...' : `✓ Importar ${registrosParsea.length} registros`}
+              </button>
+              <button
+                className="btn"
+                onClick={() => {
+                  setRegistrosParsea([]);
+                  setArchivo(null);
+                  setCambios({});
+                  setDetectadasNuevas({});
+                }}
+              >
+                ✕ Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Modal de edición ─────────────────────────────────────────────────────────
 function ModalEditar({ plan, config, setConfig, onGuardar, onCerrar }) {
   return (
@@ -541,6 +885,30 @@ function App() {
     persistir(nuevos);
   };
 
+  const importarMuchos = (registros, nuevosFincas) => {
+    // Actualizar config con nuevas fincas si las hay
+    if (nuevosFincas && Object.keys(nuevosFincas).length > 0) {
+      const cfgActualizado = { ...config };
+      Object.entries(nuevosFincas).forEach(([zona, exportadoras]) => {
+        if (!cfgActualizado.fincas[zona]) cfgActualizado.fincas[zona] = {};
+        Object.entries(exportadoras).forEach(([exp, fincas]) => {
+          if (!cfgActualizado.fincas[zona][exp]) cfgActualizado.fincas[zona][exp] = [];
+          cfgActualizado.fincas[zona][exp] = [...new Set([...cfgActualizado.fincas[zona][exp], ...fincas])];
+        });
+      });
+      setConfig(cfgActualizado);
+    }
+    // Actualizar última fecha si hay registros
+    if (registros.length > 0) {
+      const ultimaFechaReg = registros.reduce((a, b) => (b.fecha > a.fecha ? b : a)).fecha;
+      setUltimaFecha(ultimaFechaReg);
+    }
+    // Agregar registros
+    const nuevos = [...planes, ...registros];
+    setPlanes(nuevos);
+    persistir(nuevos);
+  };
+
   const toggleExpand = id => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   // ── Resumen ──────────────────────────────────────────────────────────────
@@ -579,6 +947,7 @@ function App() {
         <div className="topbar-logo">📦 Planificación <span>Banano</span></div>
         <button className={`nav-tab ${tab === 'agregar' ? 'active' : ''}`} onClick={() => setTab('agregar')}>➕ Agregar</button>
         <button className={`nav-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
+        <button className={`nav-tab ${tab === 'importar' ? 'active' : ''}`} onClick={() => setTab('importar')}>📥 Importar</button>
         {saving && <span className="saving-dot">● Guardando...</span>}
       </div>
 
@@ -895,6 +1264,11 @@ function App() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ════════════════ TAB IMPORTAR ════════════════ */}
+        {tab === 'importar' && (
+          <TabImportar config={config} setConfig={setConfig} onImportar={importarMuchos} />
         )}
       </div>
 
