@@ -1,7 +1,8 @@
 import express from "express";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { google } from "googleapis";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -12,74 +13,25 @@ app.use(express.static("public"));
 const DATA_DIR = join(__dirname, "data");
 const FINCAS_FILE = join(DATA_DIR, "fincas.json");
 const TECNICOS_FILE = join(DATA_DIR, "tecnicos.json");
-const CONTENEDORES_FILE = join(DATA_DIR, "contenedores.json");
+const CREDENTIALS_FILE = join(__dirname, "google-credentials.json");
 
-// Datos embebidos
-const FINCAS_DEFAULT = {
-  "Zona 1 - El Oro": {
-    "PALMAR": ["Calichana", "Santa Clara", "Don Euclides", "Morella 1", "Morella 2", "Doña Jenny", "Jorge Edward", "Jenny Judith", "Daniel Alejandro", "Darwin Andres 2", "Xavier Euclides", "Isaias"],
-    "INTERBANANA": ["Center", "María Enriqueta", "Tranquilidad"],
-    "DUREXPORTA": ["Tadura", "San Fernando", "San Gabriel", "San Jose", "Krapp"],
-    "LATBIO": ["Cancha", "Santa Rosa", "Tendales", "Cascadas", "Voluntad de Dios", "Abril", "Agrilugo", "Tenguel", "Chombo", "Florida", "Balao"],
-    "BAGATOCORP": ["Chalacal", "El Porvenir", "San Cristobal"],
-    "MARPLANTIS": ["Matanegro", "Zobeida", "Maria Ines", "Techo Rojo", "Agroitalia", "San Jorge"],
-    "ECUAGREENPRODEX": ["Nueva Esperanza", "Santo Domingo", "La Serrano", "Victoria 2", "Delia Maria", "Victoria 1"],
-    "NOBOA": ["Porvenir", "Tomatal", "Lote Paladines"]
-  },
-  "Zona 2 - Guayas Sur": {
-    "FRUTADELI": ["Doña Mirian", "Rosita", "La Armonia", "Nancy", "San Juan", "Clemencia", "San German 1", "San German 2", "Maria Esperanza", "San German", "Alejandra", "San Jose", "San Antonio", "Oro Verde", "La Maravilla", "El Porvenir", "Banamar La Gaby", "San Felipe", "Enmita del Rocio", "Sarita 1", "La Florida", "Don Fede", "Las Palmas"],
-    "LYRA EXPORT": ["Alejandra", "Alberto Joaquin", "Leonardo", "San Alberto", "San Alberto 2", "San Antonio", "Margarita", "Thomas", "Eva Maria", "Maria Gracia", "Delia Grace", "Benjamin 1", "Benjamin 2"],
-    "COMERSUR": ["Dioselina", "Rancho Leathed", "Bella Isla", "San Jorge", "San Jose", "Juan Jose", "San Juan", "Maria Isabel", "Lorenita", "San Henrique", "El Tesoro", "Emma Violeta", "Sitio Nuevo", "Kadima"],
-    "NOBOA": ["Agrosabana", "San Antonio", "Cisne", "San Fermin"],
-    "MENDOEXPORT": ["Angela Beatriz", "Lourdez Verónica", "Andrea", "Timbirin", "Andreina", "Bellavista", "La Aurora", "Santa Isabel", "Luciana", "Teresita", "Ilinka Tamara"]
-  },
-  "Zona 3 - Guayas Este": {
-    "FRESKBANA": ["El Carmen", "San Luis", "Porvenir", "Diamante"],
-    "GREEN EXPRESS": ["Henrry Orozco", "Wilfrido Leon", "Nicola Falconi", "Juan Vicuña", "Asoprobaly"],
-    "MENDOEXPORT": ["Fortaleza", "San Lorenzo", "GDios 2"],
-    "PIÑAS RICAS": ["Don Víctor", "La Gaby", "Valeria", "La Toquilla", "Banamar", "La Ricosa", "Ramizan", "Napoles"],
-    "DUREXPORTA": ["Venecia", "Gabriela", "Zaragoza"],
-    "JORCORP": ["San Luis", "Miraflores"],
-    "TUCHOK": ["Renata", "Carlita", "Cindia", "Las Garzas"]
-  },
-  "Zona 4 - Los Rios Norte": {
-    "SUMIFRUT": ["San Marcos 1", "San Luís", "Carolina", "Soledad", "San Marcos 2", "La Suerte 1", "La Suerte 2", "Triple A", "Manos de Dios", "Maria Fernanda", "Sigal", "Clemencia", "Doña Luisa", "Claudia Maria", "Doña Laura", "Mercedes"],
-    "FRESKBANA": ["El Carmen", "Isabella 2", "Diamante", "La Gema", "Isabella 1", "San Luis", "Naranjo Chico", "San Eduardo 1", "Guayabo 2", "Guayabo 3", "Princesa Banana 1", "Princesa Banana 4", "Santa Teresita 2"],
-    "MENDOEXPORT": ["Mathias", "Maria Maria", "No Lo Pensé 1", "Juana de Oro", "Desbroce", "Inmaculada 1", "Inmaculada 2", "Inmaculada 4", "Sitio Nuevo", "Inmaculada 3", "Constancia", "Jota Jota", "La Virgen", "La Nola 1", "Alejandro Alberto", "Banpal", "JJ", "Jota Jota 1", "Transval 2", "Transval 1"],
-    "JORCORP": ["Primor", "Ciruelo", "Margarita", "Rosa Andrea", "Victoria de Chapulo 2", "Victoria Chapulo 3", "Playa Grande", "La Clara", "Laurita", "Jota Jota", "San Jacinto", "Buena Esperanza", "Pepita", "Maria Isabel", "Despertar", "Achotillo", "La Ruth", "Don Enrique"]
-  },
-  "Zona 5 - Los Rios Sur": {
-    "FRESKBANA": ["El Carmen", "Isabella 2", "Diamante", "La Gema", "Isabella 1", "San Luis"],
-    "LUDERSON": ["San Sebastián"],
-    "MENDOEXPORT": ["Mathias", "Maria Maria", "No Lo Pensé 1", "Juana de Oro"],
-    "JORCORP": ["Toñito", "Rosita", "Margarita", "San Luis", "Rosa Andrea", "Victoria de Chapulo 2", "Carmela/Ciruelo 2", "Don Eloy", "Paraíso 1", "Laurita"],
-    "PALMAR": ["Isla", "Cerro Gusano", "Cordones", "Diamante", "Regalito", "Rancho Grande", "Vinceña"],
-    "DUREXPORTA": ["San Miguel", "Victoria 2", "Victoria 3", "La Clara", "D'Roma", "Carmela", "Ciruelo 1", "Zaragoza", "Playa Grande", "Reversa", "Las Palma"]
-  }
-};
+// ID de tu Google Sheet (extraído de la URL)
+const SPREADSHEET_ID = "1FvtccGpyIfQw0l3CeD0-WTdyJ5MN37dSx8osUbo2wIw";
+const SHEET_NAME = "Registros";
 
-const TECNICOS_DEFAULT = [
-  "LUIS GERMAN GARCIA CEVALLOS", "WALTER LEONARDO CONTRERAS BOBADILLA", "DARWIN JOSE RIZO LOPEZ",
-  "BRYAN ALEXANDER GALARZA GUERRERO", "CHRISTOPHER MAURICIO CORTEZ MERA", "ANGEL ABIUD MUÑOZ ARIAS",
-  "JERRY SIMON ARREAGA CARRILLO", "RENY ANTHONY ZUÑIGA BERREZUETA", "ALEX DI GANG WU TORRES",
-  "JORDY AARON AGUILAR GONZALEZ", "GUSTAVO ADOLFO GARCIA QUICHIMBO", "HUGO XAVIER CALDERON AYALA",
-  "MILTON PATRICIO FERNANDEZ COELLO", "JAIME ANDRES RENDON ANCHUNDIA", "FABIAN ENRIQUE MONTIEL BRAVO",
-  "LUIS ANDERSON MORA GALARZA", "EDISON FABIAN GUAMANGATE CASILLAS", "DANNY DAVID DUMAGUALA ARTEAGA",
-  "RICHARD SEBASTIAN GARCIA ESPINOZA", "LEANDRO STALIN FIGUEROA ORBE", "LUIS ARMANDO PEREZ ALVARADO",
-  "LUIS FERNANDO LITARDO GARCES", "JEFFERSON LENIN BONE CHILA", "FERNANDO JOSE DURAN GUERRERO",
-  "HOLGER FERNANDO SANCHEZ PEÑA", "ALEXY LEONEL MUÑOZ COELLO", "DALEMBER ARIEL MURILLO AGILA",
-  "JACKSON GRISMALDO MOLINA VERA", "LUIS ANGEL ARGUELLO ROMERO", "BYRON KEVIN PARRALES LASSO",
-  "BRYAN ANDRES ARMIJOS ROMERO", "ELVIS NICOLA FAJARDO CHAGUAY", "ESTIVEN ERNESTO SANTILLAN BRICIO",
-  "JONATHAN ARGENIS SERNA ACOSTA", "HERMES DARWIN GAVILANES MACIAS", "ROGER DYLAN LOPEZ MARQUEZ",
-  "MISAEL PAUL RIVERA CONTRERAS", "EDGAR MAURICIO VILLON PALMA", "JEAN CARLOS GARRIDO QUINTERO",
-  "PEDRO PAUL PONGUILLO AYALA", "MANUEL STEVEN REYES RODRIGUEZ", "JESUS ANDRES BOSQUEZ BOSQUEZ",
-  "PERFECTO HOMERO CHICA PEREZ", "NIXON JOSUE REYES YEPEZ", "MARCOS IVAN SANCHEZ LEON",
-  "BIALLO ALEXIS MIRANDA ROBLES", "RODERICK ORLEY CADENA DELGADO", "MARLON ALEXI ALAVA DELGADO",
-  "LUIS FERNANDO LLIVICURA SALAZAR"
-];
-
-// Crear carpeta data si no existe
-if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+// ── Configurar Google Sheets API ──
+let sheets;
+try {
+  const credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, "utf-8"));
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+  sheets = google.sheets({ version: "v4", auth });
+  console.log("✅ Google Sheets API conectada");
+} catch (e) {
+  console.error("❌ Error al conectar Google Sheets:", e.message);
+}
 
 function loadJSON(path, fallback = {}) {
   try {
@@ -92,41 +44,101 @@ function loadJSON(path, fallback = {}) {
   return fallback;
 }
 
-function saveJSON(path, data) {
+// ── Leer contenedores desde Google Sheets ──
+async function leerContenedores() {
   try {
-    writeFileSync(path, JSON.stringify(data, null, 2), "utf-8");
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_NAME}!A2:L`, // Desde fila 2 (después de headers)
+    });
+
+    const rows = response.data.values || [];
+    const contenedores = rows.map(row => ({
+      id: row[0] || "",
+      fecha: row[1] || "",
+      semana: row[2] || "",
+      dia: row[3] || "",
+      zona: row[4] || "",
+      exportadora: row[5] || "",
+      fincas: row[6] ? row[6].split(", ") : [],
+      planificado: parseFloat(row[7]) || 0,
+      inspeccionado: row[8] ? parseFloat(row[8]) : null,
+      tecnicos: row[9] ? row[9].split(", ") : [],
+      motivo: row[10] || "",
+      timestamp: row[11] || "",
+    }));
+
+    return contenedores;
+  } catch (e) {
+    console.error("Error leyendo Google Sheets:", e.message);
+    return [];
+  }
+}
+
+// ── Escribir contenedores a Google Sheets ──
+async function escribirContenedores(contenedores) {
+  try {
+    // Convertir contenedores a formato de filas
+    const rows = contenedores.map(c => [
+      c.id,
+      c.fecha,
+      c.semana,
+      c.dia,
+      c.zona,
+      c.exportadora,
+      c.fincas.join(", "),
+      c.planificado,
+      c.inspeccionado !== null ? c.inspeccionado : "",
+      c.tecnicos.join(", "),
+      c.motivo || "",
+      c.timestamp,
+    ]);
+
+    // Limpiar sheet y escribir todo de nuevo
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_NAME}!A2:L`,
+    });
+
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A2`,
+        valueInputOption: "RAW",
+        resource: { values: rows },
+      });
+    }
+
+    console.log(`✅ ${rows.length} registros guardados en Google Sheets`);
     return true;
   } catch (e) {
-    console.error("Error saving", path, e);
+    console.error("Error escribiendo en Google Sheets:", e.message);
     return false;
   }
 }
 
-
 // ── API: Config (fincas + técnicos) ──
 app.get("/api/config", (req, res) => {
-  const fincas = loadJSON(FINCAS_FILE, FINCAS_DEFAULT);
-  const tecnicos = loadJSON(TECNICOS_FILE, TECNICOS_DEFAULT);
+  const fincas = loadJSON(FINCAS_FILE, {});
+  const tecnicos = loadJSON(TECNICOS_FILE, []);
   const zonas = Object.keys(fincas);
-  
   res.json({ zonas, fincas, tecnicos });
 });
 
 app.post("/api/config", (req, res) => {
-  const { fincas, tecnicos } = req.body;
-  if (fincas) saveJSON(FINCAS_FILE, fincas);
-  if (tecnicos) saveJSON(TECNICOS_FILE, tecnicos);
-  res.json({ ok: true });
+  // Config se mantiene en archivos locales (fincas y técnicos)
+  res.json({ ok: true, message: "Config no se guarda en Sheets" });
 });
 
-// ── API: Contenedores ──
-app.get("/api/contenedores", (req, res) => {
-  const data = loadJSON(CONTENEDORES_FILE, { contenedores: [] });
-  res.json(data);
+// ── API: Contenedores (desde Google Sheets) ──
+app.get("/api/contenedores", async (req, res) => {
+  const contenedores = await leerContenedores();
+  res.json({ contenedores });
 });
 
-app.post("/api/contenedores", (req, res) => {
-  const ok = saveJSON(CONTENEDORES_FILE, req.body);
+app.post("/api/contenedores", async (req, res) => {
+  const { contenedores } = req.body;
+  const ok = await escribirContenedores(contenedores);
   res.json({ ok });
 });
 

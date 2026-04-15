@@ -1,3 +1,4 @@
 node_modules/
-data/*.json
 .env
+google-credentials.json
+data/contenedores.json
