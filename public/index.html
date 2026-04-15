@@ -247,8 +247,9 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
   const hayDiff = ambos && planNum !== inspNum;
   const diffNum = +(planNum - inspNum).toFixed(2);
 
-  // Listas derivadas de config
-  const exportadoras    = zona ? Object.keys(config.fincas[zona] || {}) : [];
+  // Listas derivadas de config - TODAS LAS EXPORTADORAS DISPONIBLES EN TODAS LAS ZONAS
+  const todasExportadoras = [...new Set(Object.values(config.fincas).flatMap(z => Object.keys(z)))].sort();
+  const exportadoras    = zona ? todasExportadoras : [];
   const fincasDeExp     = zona && exportadora ? (config.fincas[zona]?.[exportadora] || []) : [];
   const fincasFiltradas = fincasDeExp.filter(f => f.toLowerCase().includes(buscarFinca.toLowerCase()));
 
