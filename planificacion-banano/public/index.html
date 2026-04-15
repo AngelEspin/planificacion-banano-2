@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planificación Semanal · Contenedores</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:#F5F7FA;color:#1a1a2e;min-height:100vh}
+  #root{display:flex;flex-direction:column;min-height:100vh}
+
+  /* Top bar */
+  .topbar{background:#0F2040;color:#fff;padding:0 24px;display:flex;align-items:center;gap:0;height:52px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .topbar-logo{font-size:15px;font-weight:600;letter-spacing:.02em;margin-right:32px;white-space:nowrap}
+  .topbar-logo span{color:#F9A825}
+  .nav-tab{background:transparent;border:none;color:rgba(255,255,255,.65);padding:0 18px;height:52px;cursor:pointer;font-size:13px;border-bottom:3px solid transparent;transition:.15s}
+  .nav-tab:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .nav-tab.active{color:#fff;border-bottom-color:#F9A825;font-weight:500}
+  .topbar-right{margin-left:auto;font-size:11px;color:rgba(255,255,255,.4)}
+
+  /* Layout */
+  .main{flex:1;padding:20px 24px;max-width:1400px;width:100%;margin:0 auto}
+
+  /* Cards */
+  .card{background:#fff;border-radius:10px;border:1px solid #E2E8F0;padding:18px 20px;margin-bottom:16px}
+  .card-title{font-size:14px;font-weight:600;margin-bottom:14px;color:#0F2040}
+
+  /* Stat grid */
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+  .stat{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;text-align:center}
+  .stat-label{font-size:11px;color:#64748b;margin-bottom:6px}
+  .stat-val{font-size:26px;font-weight:700;color:#0F2040}
+  .stat-val.green{color:#16a34a}
+  .stat-val.amber{color:#b45309}
+  .stat-val.red{color:#dc2626}
+
+  /* Toolbar */
+  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;color:#334155;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;transition:.12s}
+  .btn:hover{background:#F1F5F9;border-color:#94A3B8}
+  .btn.primary{background:#0F2040;color:#fff;border-color:#0F2040}
+  .btn.primary:hover{background:#1a3560}
+  .btn.amber{background:#F9A825;color:#1a1a2e;border-color:#F9A825}
+  .btn.amber:hover{background:#e09720}
+  .btn.sm{padding:4px 9px;font-size:11px}
+  .btn.danger{color:#dc2626;border-color:#fca5a5}
+  .btn.danger:hover{background:#FEF2F2}
+
+  /* Select */
+  select{padding:7px 10px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;color:#334155;font-size:13px;cursor:pointer;min-width:180px}
+  select:focus{outline:none;border-color:#0F2040}
+
+  /* Inputs */
+  input[type=text],input[type=number].wide,textarea{width:100%;padding:7px 10px;border:1px solid #CBD5E1;border-radius:7px;font-size:13px;background:#fff;color:#1a1a2e}
+  input[type=text]:focus,textarea:focus{outline:none;border-color:#0F2040;box-shadow:0 0 0 3px rgba(15,32,64,.08)}
+  textarea{resize:vertical;min-height:52px;font-family:inherit}
+  input[type=number]{width:40px;padding:4px 5px;border:1px solid #CBD5E1;border-radius:5px;text-align:center;font-size:12px;background:#fff;color:#1a1a2e}
+  input[type=number]:focus{outline:none;border-color:#0F2040}
+
+  /* Form grid */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .form-row{display:flex;flex-direction:column;gap:5px}
+  .form-row label{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .form-row.full{grid-column:1/-1}
+
+  /* Inline form panel */
+  .panel{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;margin-bottom:14px}
+  .panel h3{font-size:13px;font-weight:600;margin-bottom:12px;color:#0F2040}
+
+  /* Table */
+  .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid #E2E8F0}
+  table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+  th,td{padding:7px 9px;border-bottom:1px solid #F1F5F9;text-align:center;vertical-align:middle;white-space:nowrap}
+  th{background:#F8FAFC;font-weight:600;font-size:11px;color:#475569;border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:1}
+  td.left{text-align:left}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#FAFBFC}
+  .exp-row td{background:#EFF6FF;font-weight:700;font-size:11px;color:#1e40af;letter-spacing:.04em;border-top:2px solid #BFDBFE;border-bottom:1px solid #BFDBFE}
+  .exp-row:hover td{background:#EFF6FF}
+
+  /* Cell colors */
+  .cell-ok{background:#DCFCE7 !important}
+  .cell-warn{background:#FEF9C3 !important}
+  .cell-bad{background:#FEE2E2 !important}
+
+  /* Tags */
+  .tag{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+  .tag-ok{background:#DCFCE7;color:#166534}
+  .tag-warn{background:#FEF9C3;color:#854d0e}
+  .tag-bad{background:#FEE2E2;color:#991b1b}
+  .tag-gray{background:#F1F5F9;color:#475569}
+
+  /* Motivo panel */
+  .motivo-panel{background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-top:4px}
+  .motivo-panel h4{font-size:11px;font-weight:600;color:#854d0e;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+  .motivo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+  .motivo-item{background:#fff;border:1px solid #FDE68A;border-radius:7px;padding:8px 10px}
+  .motivo-item label{font-size:10px;font-weight:700;color:#92400e;display:block;margin-bottom:5px}
+
+  /* Accordion (fincas view) */
+  .accordion{border:1px solid #E2E8F0;border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .accordion-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F8FAFC;cursor:pointer;user-select:none;transition:.12s}
+  .accordion-header:hover{background:#EFF6FF}
+  .accordion-header h3{font-size:13px;font-weight:600;color:#0F2040}
+  .accordion-body{padding:14px 16px;border-top:1px solid #E2E8F0}
+
+  /* Chip */
+  .chip{display:inline-block;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:20px;padding:3px 10px;font-size:11px;color:#1e40af;font-weight:500}
+
+  /* Alert */
+  .alert{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 16px;font-size:13px;color:#1e40af;margin-bottom:14px}
+  .alert-warn{background:#FFFBEB;border-color:#FDE68A;color:#854d0e}
+
+  /* Loading */
+  .loading{display:flex;align-items:center;justify-content:center;height:200px;color:#64748b;font-size:14px}
+
+  /* Separator */
+  .sep{height:1px;background:#E2E8F0;margin:14px 0}
+
+  /* Subheader row */
+  .subhdr td{font-size:10px;font-weight:600;color:#94a3b8;background:#FAFAFA;padding:3px 9px;border-bottom:1px solid #E2E8F0}
+  .subhdr:hover td{background:#FAFAFA}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const {useState,useEffect,useCallback}=React;
+const DAYS=['DOM','LUN','MAR','MIER','JUE','VIE','SÁB'];
+
+const INIT_EXP=[
+  {id:'e1',nombre:'FRESKBANA',fincas:[
+    {id:'f1a',nombre:'EL CARMEN',codigo:'100786',provincia:'LOS RIOS',zona:'LA UNION'},
+    {id:'f1b',nombre:'SAN LUIS',codigo:'13884',provincia:'LOS RIOS',zona:'BABAHOYO'},
+    {id:'f1c',nombre:'PORVENIR',codigo:'',provincia:'LOS RIOS',zona:'LA UNION'},
+    {id:'f1d',nombre:'DIAMANTE',codigo:'6635',provincia:'LOS RIOS',zona:'CARACOL'},
+  ]},
+  {id:'e2',nombre:'GREEN EXPRESS',fincas:[
+    {id:'f2a',nombre:'HENRRY OROZCO',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f2b',nombre:'WILFRIDO LEON',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f2c',nombre:'NICOLA FALCONI',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f2d',nombre:'JUAN VICUÑA',codigo:'C0129',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f2e',nombre:'ASOROBALY',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+  ]},
+  {id:'e3',nombre:'MENDOEXPORT',fincas:[
+    {id:'f3a',nombre:'FORTALEZA',codigo:'',provincia:'GUAYAS',zona:'LORENZO'},
+    {id:'f3b',nombre:'SAN LORENZO',codigo:'266',provincia:'GUAYAS',zona:'PUEBLO NUEVO'},
+    {id:'f3c',nombre:'GDIOS 2',codigo:'748',provincia:'GUAYAS',zona:'SIMON BOLIVAR'},
+  ]},
+  {id:'e4',nombre:'MARPLANTIS',fincas:[
+    {id:'f4a',nombre:'SARITA',codigo:'',provincia:'GUAYAS',zona:'SIMON BOLIVAR'},
+  ]},
+  {id:'e5',nombre:'PINAS',fincas:[
+    {id:'f5a',nombre:'DON VÍCTOR',codigo:'N23319',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f5b',nombre:'LA GABY',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f5c',nombre:'VALERIA',codigo:'',provincia:'GUAYAS',zona:'SOLEDAD'},
+    {id:'f5d',nombre:'LA TOQUILLA',codigo:'',provincia:'GUAYAS',zona:'SIMON'},
+    {id:'f5e',nombre:'BANAMAR',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f5f',nombre:'LA RICOSA',codigo:'',provincia:'GUAYAS',zona:'GARICOA'},
+    {id:'f5g',nombre:'RAMIZAN',codigo:'1928',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f5h',nombre:'NAPOLES',codigo:'1928',provincia:'GUAYAS',zona:'MARISCAL'},
+  ]},
+  {id:'e6',nombre:'DUREXPORTA',fincas:[
+    {id:'f6a',nombre:'VENECIA',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f6b',nombre:'GABRIELA',codigo:'',provincia:'GUAYAS',zona:'MARISCAL'},
+    {id:'f6c',nombre:'ZARAGOZA',codigo:'1765',provincia:'LOS RIOS',zona:'BABAHOYO'},
+  ]},
+  {id:'e7',nombre:'JORCORP',fincas:[
+    {id:'f7a',nombre:'SAN LUIS',codigo:'',provincia:'LOS RIOS',zona:'BABAHOYO'},
+    {id:'f7b',nombre:'MIRAFLORES',codigo:'',provincia:'GUAYAS',zona:'GARICOA'},
+  ]},
+  {id:'e8',nombre:'TUCHOK',fincas:[
+    {id:'f8a',nombre:'RENATA',codigo:'',provincia:'GUAYAS',zona:'PUEBLO NUEVO'},
+    {id:'f8b',nombre:'CARLITA',codigo:'',provincia:'GUAYAS',zona:'PUEBLO NUEVO'},
+    {id:'f8c',nombre:'CINDIA',codigo:'',provincia:'GUAYAS',zona:'CINDIA'},
+    {id:'f8d',nombre:'LAS GARZAS',codigo:'',provincia:'GUAYAS',zona:'LAS GARZAS'},
+  ]},
+  {id:'e9',nombre:'NOBOA',fincas:[{id:'f9a',nombre:'VENECIA',codigo:'',provincia:'LOS RIOS',zona:'MARISCAL'}]},
+  {id:'e10',nombre:'INTERBANANA',fincas:[{id:'f10a',nombre:'ROSITA',codigo:'',provincia:'LOS RIOS',zona:'CARACOL'}]},
+  {id:'e11',nombre:'COMERSUR',fincas:[]},
+  {id:'e12',nombre:'BAGATO',fincas:[]},
+  {id:'e13',nombre:'NOBOA',fincas:[]},
+  {id:'e14',nombre:'LATBIO',fincas:[]},
+  {id:'e15',nombre:'EARTHFRUCTIFERA',fincas:[]},
+  {id:'e16',nombre:'ECUAGREENPRODEX',fincas:[]},
+];
+
+const emptyDay=()=>({plan:'',insp:'',motivo:''});
+const emptyFinca=()=>Object.fromEntries(DAYS.map(d=>[d,emptyDay()]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+// ── API helpers ────────────────────────────────────────────────────────────
+async function apiGet(path){
+  const r=await fetch(path);
+  if(!r.ok)throw new Error(r.statusText);
+  return r.json();
+}
+async function apiPost(path,body){
+  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error(r.statusText);
+  return r.json();
+}
+
+// ── Main App ───────────────────────────────────────────────────────────────
+function App(){
+  const [view,setView]=useState('semanas');
+  const [config,setConfig]=useState(null);
+  const [semanas,setSemanas]=useState(null);
+  const [curKey,setCurKey]=useState(null);
+  const [saving,setSaving]=useState(false);
+  const [saveMsg,setSaveMsg]=useState('');
+
+  // Forms
+  const [showNewSem,setShowNewSem]=useState(false);
+  const [newSem,setNewSem]=useState({weekNum:'',year:new Date().getFullYear()+'',zona:'GUAYAS ESTE'});
+  const [expandMotivo,setExpandMotivo]=useState({});
+  const [addFincaFor,setAddFincaFor]=useState(null);
+  const [newFinca,setNewFinca]=useState({nombre:'',codigo:'',provincia:'',zona:''});
+  const [addExp,setAddExp]=useState(false);
+  const [newExpNombre,setNewExpNombre]=useState('');
+  const [expandExp,setExpandExp]=useState({});
+
+  // Load data
+  useEffect(()=>{
+    Promise.all([apiGet('/api/config'),apiGet('/api/semanas')]).then(([cfg,sems])=>{
+      const finalCfg=(cfg&&cfg.exportadoras&&cfg.exportadoras.length>0)?cfg:{exportadoras:INIT_EXP};
+      setConfig(finalCfg);
+      setSemanas(sems||{});
+      const keys=Object.keys(sems||{}).sort();
+      if(keys.length)setCurKey(keys[keys.length-1]);
+    }).catch(()=>{
+      setConfig({exportadoras:INIT_EXP});
+      setSemanas({});
+    });
+  },[]);
+
+  const saveConfig=useCallback(async(newCfg)=>{
+    setSaving(true);
+    try{await apiPost('/api/config',newCfg);setSaveMsg('Guardado');}catch(e){setSaveMsg('Error al guardar');}
+    setSaving(false);setTimeout(()=>setSaveMsg(''),2000);
+  },[]);
+
+  const saveSemanas=useCallback(async(newSems)=>{
+    setSaving(true);
+    try{await apiPost('/api/semanas',newSems);setSaveMsg('Guardado');}catch(e){setSaveMsg('Error al guardar');}
+    setSaving(false);setTimeout(()=>setSaveMsg(''),2000);
+  },[]);
+
+  const updateConfig=(newCfg)=>{setConfig(newCfg);saveConfig(newCfg);};
+  const updateSemanas=(newSems)=>{setSemanas(newSems);saveSemanas(newSems);};
+
+  const sem=curKey?semanas[curKey]:null;
+
+  const getE=(semKey,fId,day)=>semanas[semKey]?.entries?.[fId]?.[day]||emptyDay();
+
+  const setE=(semKey,fId,day,field,val)=>{
+    const s=semanas[semKey];
+    const fe=s.entries[fId]||emptyFinca();
+    const de=fe[day]||emptyDay();
+    const newSems={...semanas,[semKey]:{...s,entries:{...s.entries,[fId]:{...fe,[day]:{...de,[field]:val}}}}};
+    setSemanas(newSems);
+    // Debounced save
+    clearTimeout(window._saveTimer);
+    window._saveTimer=setTimeout(()=>saveSemanas(newSems),800);
+  };
+
+  const fincaTotals=(semKey,fId)=>{
+    let tp=0,ti=0;
+    DAYS.forEach(d=>{const e=getE(semKey,fId,d);tp+=Number(e.plan)||0;ti+=Number(e.insp)||0;});
+    return{tp,ti};
+  };
+
+  const createSemana=()=>{
+    if(!newSem.weekNum||!newSem.year)return;
+    const key=`W${String(newSem.weekNum).padStart(2,'0')}-${newSem.year}`;
+    const newSems={...semanas,[key]:{label:`Semana ${newSem.weekNum} · ${newSem.year}`,weekNum:+newSem.weekNum,year:+newSem.year,zona:newSem.zona,entries:{}}};
+    updateSemanas(newSems);
+    setCurKey(key);setShowNewSem(false);setNewSem({weekNum:'',year:new Date().getFullYear()+'',zona:'GUAYAS ESTE'});
+  };
+
+  const addFinca=()=>{
+    if(!newFinca.nombre.trim()||!addFincaFor)return;
+    const newCfg={...config,exportadoras:config.exportadoras.map(ex=>
+      ex.id===addFincaFor?{...ex,fincas:[...ex.fincas,{...newFinca,nombre:newFinca.nombre.trim().toUpperCase(),id:'f'+uid()}]}:ex
+    )};
+    updateConfig(newCfg);
+    setNewFinca({nombre:'',codigo:'',provincia:'',zona:''});setAddFincaFor(null);
+  };
+
+  const removeFinca=(expId,fId)=>{
+    if(!confirm('¿Eliminar esta finca?'))return;
+    updateConfig({...config,exportadoras:config.exportadoras.map(ex=>
+      ex.id===expId?{...ex,fincas:ex.fincas.filter(f=>f.id!==fId)}:ex
+    )});
+  };
+
+  const addExpF=()=>{
+    if(!newExpNombre.trim())return;
+    updateConfig({...config,exportadoras:[...config.exportadoras,{id:'e'+uid(),nombre:newExpNombre.trim().toUpperCase(),fincas:[]}]});
+    setNewExpNombre('');setAddExp(false);
+  };
+
+  if(!config||!semanas)return React.createElement('div',{className:'loading'},'Cargando datos...');
+
+  const semKeys=Object.keys(semanas).sort();
+  const allFincas=config.exportadoras.flatMap(ex=>ex.fincas.map(f=>({...f,expId:ex.id,expNombre:ex.nombre})));
+
+  let grandPlan=0,grandInsp=0;
+  semKeys.forEach(sk=>allFincas.forEach(f=>{const{tp,ti}=fincaTotals(sk,f.id);grandPlan+=tp;grandInsp+=ti;}));
+  const globalPct=grandPlan>0?Math.round(grandInsp/grandPlan*100):0;
+
+  return React.createElement('div',{id:'root'},
+    // ── Top bar ──
+    React.createElement('div',{className:'topbar'},
+      React.createElement('div',{className:'topbar-logo'},
+        React.createElement('span',null,'■ '),'Planificación ',React.createElement('span',null,'Semanal')
+      ),
+      ['semanas','fincas','resumen'].map(v=>
+        React.createElement('button',{key:v,className:`nav-tab${view===v?' active':''}`,onClick:()=>setView(v)},
+          v.charAt(0).toUpperCase()+v.slice(1)
+        )
+      ),
+      React.createElement('div',{className:'topbar-right'},
+        saving?'Guardando...':saveMsg||''
+      )
+    ),
+
+    // ── Main content ──
+    React.createElement('div',{className:'main'},
+
+      // ════════════════ SEMANAS ════════════════
+      view==='semanas'&&React.createElement('div',null,
+        React.createElement('div',{className:'stats'},
+          React.createElement('div',{className:'stat'},React.createElement('div',{className:'stat-label'},'Semanas'),React.createElement('div',{className:'stat-val'},semKeys.length)),
+          React.createElement('div',{className:'stat'},React.createElement('div',{className:'stat-label'},'Total planificados'),React.createElement('div',{className:'stat-val'},grandPlan)),
+          React.createElement('div',{className:'stat'},React.createElement('div',{className:'stat-label'},'Total inspeccionados'),React.createElement('div',{className:'stat-val'},grandInsp)),
+          React.createElement('div',{className:'stat'},
+            React.createElement('div',{className:'stat-label'},'% Inspeccionado'),
+            React.createElement('div',{className:`stat-val ${globalPct>=90?'green':globalPct>=70?'amber':'red'}`},globalPct+'%')
+          )
+        ),
+
+        React.createElement('div',{className:'card'},
+          React.createElement('div',{className:'toolbar'},
+            React.createElement('select',{value:curKey||'',onChange:e=>{setCurKey(e.target.value);setExpandMotivo({})}},
+              !semKeys.length&&React.createElement('option',{value:''},'Sin semanas'),
+              semKeys.map(k=>React.createElement('option',{key:k,value:k},semanas[k].label+' — '+semanas[k].zona))
+            ),
+            React.createElement('button',{className:'btn primary',onClick:()=>setShowNewSem(v=>!v)},'+ Nueva semana'),
+            sem&&React.createElement('span',{className:'chip'},sem.zona)
+          ),
+
+          showNewSem&&React.createElement('div',{className:'panel'},
+            React.createElement('h3',null,'Nueva semana'),
+            React.createElement('div',{className:'form-grid'},
+              React.createElement('div',{className:'form-row'},
+                React.createElement('label',null,'N° semana'),
+                React.createElement('input',{type:'number',className:'wide',placeholder:'16',value:newSem.weekNum,onChange:e=>setNewSem(p=>({...p,weekNum:e.target.value}))})
+              ),
+              React.createElement('div',{className:'form-row'},
+                React.createElement('label',null,'Año'),
+                React.createElement('input',{type:'number',className:'wide',value:newSem.year,onChange:e=>setNewSem(p=>({...p,year:e.target.value}))})
+              ),
+              React.createElement('div',{className:'form-row full'},
+                React.createElement('label',null,'Zona'),
+                React.createElement('input',{type:'text',placeholder:'ej. GUAYAS ESTE',value:newSem.zona,onChange:e=>setNewSem(p=>({...p,zona:e.target.value}))})
+              )
+            ),
+            React.createElement('div',{style:{display:'flex',gap:8}},
+              React.createElement('button',{className:'btn primary',onClick:createSemana},'Crear semana'),
+              React.createElement('button',{className:'btn',onClick:()=>setShowNewSem(false)},'Cancelar')
+            )
+          ),
+
+          !sem&&React.createElement('div',{className:'alert'},'Crea o selecciona una semana para ingresar datos.'),
+
+          sem&&React.createElement('div',{className:'tbl-wrap'},
+            React.createElement('table',null,
+              React.createElement('thead',null,
+                React.createElement('tr',null,
+                  React.createElement('th',{style:{minWidth:140,textAlign:'left'}},'Finca'),
+                  React.createElement('th',{style:{minWidth:70}},'Código'),
+                  DAYS.map(d=>React.createElement('th',{key:d,colSpan:2,style:{minWidth:86}},d)),
+                  React.createElement('th',{style:{minWidth:52}},'Plan total'),
+                  React.createElement('th',{style:{minWidth:52}},'Insp total'),
+                  React.createElement('th',{style:{minWidth:56}},'%'),
+                  React.createElement('th',{style:{minWidth:44}},'')
+                ),
+                React.createElement('tr',{className:'subhdr'},
+                  React.createElement('td',{colSpan:2}),
+                  DAYS.flatMap(d=>[
+                    React.createElement('td',{key:d+'p'},'Plan'),
+                    React.createElement('td',{key:d+'i'},'Insp')
+                  ]),
+                  React.createElement('td',{colSpan:4})
+                )
+              ),
+              React.createElement('tbody',null,
+                config.exportadoras.map(exp=>{
+                  let expP=0,expI=0;
+                  exp.fincas.forEach(f=>{const{tp,ti}=fincaTotals(curKey,f.id);expP+=tp;expI+=ti;});
+                  const expPct=expP>0?Math.round(expI/expP*100):null;
+                  return[
+                    React.createElement('tr',{key:'hd-'+exp.id,className:'exp-row'},
+                      React.createElement('td',{colSpan:2,style:{textAlign:'left',paddingLeft:12}},
+                        exp.nombre,' ',React.createElement('span',{style:{fontWeight:400,fontSize:10,color:'#3b82f6'}},exp.fincas.length+' fincas')
+                      ),
+                      DAYS.flatMap(d=>[React.createElement('td',{key:d+'p'}),React.createElement('td',{key:d+'i'})]),
+                      React.createElement('td',{style:{fontWeight:700}},expP||''),
+                      React.createElement('td',null,expI||''),
+                      React.createElement('td',null,expPct!==null?React.createElement('span',{className:`tag tag-${expPct>=100?'ok':expPct>=60?'warn':'bad'}`},expPct+'%'):''),
+                      React.createElement('td')
+                    ),
+                    ...exp.fincas.flatMap(f=>{
+                      const{tp,ti}=fincaTotals(curKey,f.id);
+                      const pct2=tp>0?Math.round(ti/tp*100):null;
+                      const hasIssues=DAYS.some(d=>{const e=getE(curKey,f.id,d);return Number(e.plan)>0&&Number(e.insp)<Number(e.plan);});
+                      const mOpen=expandMotivo[f.id];
+                      const rows=[
+                        React.createElement('tr',{key:f.id},
+                          React.createElement('td',{className:'left',style:{paddingLeft:18}},f.nombre),
+                          React.createElement('td',{style:{color:'#94a3b8',fontSize:11}},f.codigo),
+                          DAYS.flatMap(d=>{
+                            const e=getE(curKey,f.id,d);
+                            const p=Number(e.plan)||0,i=Number(e.insp)||0;
+                            let cls='';
+                            if(p>0&&i>=p)cls='cell-ok';
+                            else if(p>0&&i>0)cls='cell-warn';
+                            else if(p>0)cls='cell-bad';
+                            return[
+                              React.createElement('td',{key:d+'p',className:cls},
+                                React.createElement('input',{type:'number',min:0,value:e.plan,onChange:ev=>setE(curKey,f.id,d,'plan',ev.target.value),placeholder:'0'})
+                              ),
+                              React.createElement('td',{key:d+'i',className:cls},
+                                React.createElement('input',{type:'number',min:0,value:e.insp,onChange:ev=>setE(curKey,f.id,d,'insp',ev.target.value),placeholder:'0'})
+                              )
+                            ];
+                          }),
+                          React.createElement('td',{style:{fontWeight:600}},tp||''),
+                          React.createElement('td',null,ti||''),
+                          React.createElement('td',null,pct2!==null?React.createElement('span',{className:`tag tag-${pct2>=100?'ok':pct2>=60?'warn':'bad'}`},pct2+'%'):''),
+                          React.createElement('td',null,
+                            hasIssues&&React.createElement('button',{
+                              className:'btn sm',
+                              style:{background:mOpen?'#FEF9C3':'#fff',borderColor:'#FDE68A',color:'#854d0e'},
+                              onClick:()=>setExpandMotivo(p=>({...p,[f.id]:!p[f.id]}))
+                            },mOpen?'▲ cerrar':'! motivo')
+                          )
+                        )
+                      ];
+                      if(mOpen){
+                        const problemas=DAYS.filter(d=>{const e=getE(curKey,f.id,d);return Number(e.plan)>0&&Number(e.insp)<Number(e.plan);});
+                        rows.push(
+                          React.createElement('tr',{key:f.id+'-m'},
+                            React.createElement('td',{colSpan:2+DAYS.length*2+4,style:{padding:'10px 14px',background:'#FFFDF0'}},
+                              React.createElement('div',{className:'motivo-panel'},
+                                React.createElement('h4',null,'Motivos de no inspección — '+f.nombre),
+                                React.createElement('div',{className:'motivo-grid'},
+                                  problemas.map(d=>{
+                                    const e=getE(curKey,f.id,d);
+                                    const diff=Number(e.plan)-(Number(e.insp)||0);
+                                    return React.createElement('div',{key:d,className:'motivo-item'},
+                                      React.createElement('label',null,d+' · faltan '+diff+' ctn'),
+                                      React.createElement('textarea',{
+                                        rows:2,placeholder:'Ej: lluvia, finca cerrada, problema de guía...',
+                                        value:e.motivo,
+                                        onChange:ev=>setE(curKey,f.id,d,'motivo',ev.target.value)
+                                      })
+                                    );
+                                  })
+                                )
+                              )
+                            )
+                          )
+                        );
+                      }
+                      return rows;
+                    })
+                  ];
+                })
+              )
+            )
+          )
+        )
+      ),
+
+      // ════════════════ FINCAS ════════════════
+      view==='fincas'&&React.createElement('div',null,
+        React.createElement('div',{className:'toolbar',style:{marginBottom:16}},
+          React.createElement('h2',{style:{fontSize:15,fontWeight:700,color:'#0F2040',marginRight:'auto'}},'Exportadoras y fincas'),
+          React.createElement('button',{className:'btn primary',onClick:()=>setAddExp(v=>!v)},'+ Nueva exportadora')
+        ),
+
+        addExp&&React.createElement('div',{className:'panel'},
+          React.createElement('h3',null,'Nueva exportadora'),
+          React.createElement('div',{style:{display:'flex',gap:8}},
+            React.createElement('input',{type:'text',placeholder:'Nombre exportadora (ej. FANALBA)',value:newExpNombre,onChange:e=>setNewExpNombre(e.target.value),style:{flex:1}}),
+            React.createElement('button',{className:'btn primary',onClick:addExpF},'Agregar'),
+            React.createElement('button',{className:'btn',onClick:()=>setAddExp(false)},'Cancelar')
+          )
+        ),
+
+        config.exportadoras.map(exp=>
+          React.createElement('div',{key:exp.id,className:'accordion'},
+            React.createElement('div',{className:'accordion-header',onClick:()=>setExpandExp(p=>({...p,[exp.id]:!p[exp.id]}))},
+              React.createElement('h3',null,exp.nombre),
+              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10}},
+                React.createElement('span',{className:'tag tag-gray'},exp.fincas.length+' fincas'),
+                React.createElement('span',{style:{color:'#94a3b8',fontSize:12}},expandExp[exp.id]?'▲':'▼')
+              )
+            ),
+            expandExp[exp.id]&&React.createElement('div',{className:'accordion-body'},
+              exp.fincas.length>0&&React.createElement('div',{className:'tbl-wrap',style:{marginBottom:12}},
+                React.createElement('table',null,
+                  React.createElement('thead',null,React.createElement('tr',null,
+                    React.createElement('th',{className:'left'},'Finca'),
+                    React.createElement('th',null,'Código'),
+                    React.createElement('th',null,'Provincia'),
+                    React.createElement('th',null,'Zona'),
+                    React.createElement('th',null,'')
+                  )),
+                  React.createElement('tbody',null,
+                    exp.fincas.map(f=>React.createElement('tr',{key:f.id},
+                      React.createElement('td',{className:'left',style:{fontWeight:500}},f.nombre),
+                      React.createElement('td',null,f.codigo||'—'),
+                      React.createElement('td',null,f.provincia||'—'),
+                      React.createElement('td',null,f.zona||'—'),
+                      React.createElement('td',null,
+                        React.createElement('button',{className:'btn sm danger',onClick:()=>removeFinca(exp.id,f.id)},'Eliminar')
+                      )
+                    ))
+                  )
+                )
+              ),
+              exp.fincas.length===0&&React.createElement('div',{className:'alert alert-warn',style:{marginBottom:12}},'Esta exportadora no tiene fincas registradas.'),
+              addFincaFor===exp.id
+                ?React.createElement('div',{className:'panel'},
+                  React.createElement('h3',null,'Nueva finca en '+exp.nombre),
+                  React.createElement('div',{className:'form-grid'},
+                    [['nombre','Nombre de finca'],['codigo','Código'],['provincia','Provincia'],['zona','Zona']].map(([f,lbl])=>
+                      React.createElement('div',{key:f,className:'form-row'},
+                        React.createElement('label',null,lbl),
+                        React.createElement('input',{type:'text',value:newFinca[f],onChange:e=>setNewFinca(p=>({...p,[f]:e.target.value}))})
+                      )
+                    )
+                  ),
+                  React.createElement('div',{style:{display:'flex',gap:8}},
+                    React.createElement('button',{className:'btn primary',onClick:addFinca},'Guardar finca'),
+                    React.createElement('button',{className:'btn',onClick:()=>setAddFincaFor(null)},'Cancelar')
+                  )
+                )
+                :React.createElement('button',{className:'btn amber',onClick:()=>{setAddFincaFor(exp.id);setNewFinca({nombre:'',codigo:'',provincia:'',zona:''});}},
+                  '+ Agregar finca'
+                )
+            )
+          )
+        )
+      ),
+
+      // ════════════════ RESUMEN ════════════════
+      view==='resumen'&&React.createElement('div',null,
+        React.createElement('div',{className:'toolbar',style:{marginBottom:16}},
+          React.createElement('h2',{style:{fontSize:15,fontWeight:700,color:'#0F2040',marginRight:'auto'}},'Resumen acumulado')
+        ),
+        semKeys.length===0
+          ?React.createElement('div',{className:'alert'},'Sin semanas registradas aún.')
+          :React.createElement('div',{className:'card'},
+            React.createElement('div',{style:{fontSize:12,color:'#64748b',marginBottom:12}},'Plan = planificado · Insp = inspeccionado por semana y finca'),
+            React.createElement('div',{className:'tbl-wrap'},
+              React.createElement('table',null,
+                React.createElement('thead',null,
+                  React.createElement('tr',null,
+                    React.createElement('th',{className:'left',style:{minWidth:130}},'Exportadora'),
+                    React.createElement('th',{className:'left',style:{minWidth:130}},'Finca'),
+                    semKeys.map(sk=>React.createElement('th',{key:sk,colSpan:2,style:{minWidth:100}},semanas[sk].label)),
+                    React.createElement('th',{colSpan:2,style:{minWidth:100,background:'#EFF6FF'}},'Total'),
+                    React.createElement('th',{style:{minWidth:60,background:'#EFF6FF'}},'%')
+                  ),
+                  React.createElement('tr',{className:'subhdr'},
+                    React.createElement('td',{colSpan:2}),
+                    semKeys.flatMap(sk=>[
+                      React.createElement('td',{key:sk+'p'},'Plan'),
+                      React.createElement('td',{key:sk+'i'},'Insp')
+                    ]),
+                    React.createElement('td',null,'Plan'),
+                    React.createElement('td',null,'Insp'),
+                    React.createElement('td')
+                  )
+                ),
+                React.createElement('tbody',null,
+                  config.exportadoras.map(exp=>{
+                    let expTP=0,expTI=0;
+                    const fRows=exp.fincas.map(f=>{
+                      let fTP=0,fTI=0;
+                      const semCells=semKeys.flatMap(sk=>{
+                        const{tp,ti}=fincaTotals(sk,f.id);
+                        fTP+=tp;fTI+=ti;expTP+=tp;expTI+=ti;
+                        return[
+                          React.createElement('td',{key:sk+'p'},tp||''),
+                          React.createElement('td',{key:sk+'i'},ti||'')
+                        ];
+                      });
+                      const fp=fTP>0?Math.round(fTI/fTP*100):null;
+                      return React.createElement('tr',{key:f.id},
+                        React.createElement('td',{className:'left',style:{color:'#94a3b8',fontSize:11}}),
+                        React.createElement('td',{className:'left',style:{paddingLeft:18,fontWeight:500}},f.nombre),
+                        ...semCells,
+                        React.createElement('td',{style:{fontWeight:600,background:'#F0F9FF'}},fTP||''),
+                        React.createElement('td',{style:{background:'#F0F9FF'}},fTI||''),
+                        React.createElement('td',{style:{background:'#F0F9FF'}},
+                          fp!==null?React.createElement('span',{className:`tag tag-${fp>=100?'ok':fp>=70?'warn':'bad'}`},fp+'%'):''
+                        )
+                      );
+                    });
+                    const ep=expTP>0?Math.round(expTI/expTP*100):null;
+                    return[
+                      React.createElement('tr',{key:'hd'+exp.id,className:'exp-row'},
+                        React.createElement('td',{className:'left',colSpan:2,style:{paddingLeft:12}},exp.nombre),
+                        semKeys.flatMap(sk=>{
+                          let sp=0,si=0;
+                          exp.fincas.forEach(f=>{const{tp,ti}=fincaTotals(sk,f.id);sp+=tp;si+=ti;});
+                          return[React.createElement('td',{key:sk+'p'},sp||''),React.createElement('td',{key:sk+'i'},si||'')];
+                        }),
+                        React.createElement('td',{style:{fontWeight:700,background:'#EFF6FF'}},expTP||''),
+                        React.createElement('td',{style:{background:'#EFF6FF'}},expTI||''),
+                        React.createElement('td',{style:{background:'#EFF6FF'}},
+                          ep!==null?React.createElement('span',{className:`tag tag-${ep>=100?'ok':ep>=70?'warn':'bad'}`},ep+'%'):''
+                        )
+                      ),
+                      ...fRows
+                    ];
+                  })
+                )
+              )
+            )
+          )
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
