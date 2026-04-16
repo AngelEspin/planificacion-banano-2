@@ -238,6 +238,7 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
   const [motivo,           setMotivo]           = useState(inicial?.motivo ?? '');
   const [problema,         setProblema]         = useState(inicial?.problema ?? '');
   const [problemaResuelto, setProblemaResuelto] = useState(inicial?.problemaResuelto ?? false);
+  const [resolucion,       setResolucion]       = useState(inicial?.resolucion ?? '');
   const [buscarFinca,      setBuscarFinca]      = useState('');
 
   // Agregar nuevo técnico inline
@@ -332,6 +333,7 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
       motivo:           (inspValor != null && hayDiff) ? motivo.trim() : '',
       problema:         problema.trim(),
       problemaResuelto: problema.trim() ? problemaResuelto : false,
+      resolucion:       (problema.trim() && problemaResuelto) ? resolucion.trim() : '',
       timestamp:        inicial?.timestamp ?? new Date().toISOString()
     });
   };
@@ -506,13 +508,22 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
               <input
                 type="checkbox"
                 checked={problemaResuelto}
-                onChange={e => setProblemaResuelto(e.target.checked)}
+                onChange={e => { setProblemaResuelto(e.target.checked); if (!e.target.checked) setResolucion(''); }}
                 style={{ width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }}
               />
               <span style={{ color: problemaResuelto ? '#1d4ed8' : '#c2410c', fontWeight: 600, fontSize: 12 }}>
                 {problemaResuelto ? '✓ Problema resuelto' : '⚡ Pendiente de resolver'}
               </span>
             </label>
+            {problemaResuelto && (
+              <textarea
+                rows={2}
+                placeholder="¿Cómo se resolvió? (opcional)"
+                value={resolucion}
+                onChange={e => setResolucion(e.target.value)}
+                style={{ marginTop: 8, borderColor: '#bfdbfe', background: '#eff6ff' }}
+              />
+            )}
           </div>
         )}
       </div>
@@ -1404,10 +1415,18 @@ function App() {
                                         <div style={{ color: '#dc2626', marginTop: 2, fontSize: 11 }}>⚠ Motivo: {p.motivo}</div>
                                       )}
                                       {p.problema && (
-                                        <div style={{ marginTop: 4, padding: '3px 7px', borderRadius: 4, display: 'inline-block', fontSize: 11,
-                                          background: pProb ? '#fed7aa' : '#bfdbfe',
-                                          color: pProb ? '#c2410c' : '#1d4ed8', fontWeight: 600 }}>
-                                          {pProb ? '⚡ Problema: ' : '✓ Resuelto: '}{p.problema}
+                                        <div style={{ marginTop: 4, fontSize: 11 }}>
+                                          <div style={{ padding: '3px 7px', borderRadius: 4, display: 'inline-block',
+                                            background: pProb ? '#fed7aa' : '#bfdbfe',
+                                            color: pProb ? '#c2410c' : '#1d4ed8', fontWeight: 600 }}>
+                                            {pProb ? '⚡ Problema: ' : '⚡ Problema: '}{p.problema}
+                                          </div>
+                                          {pRes && p.resolucion && (
+                                            <div style={{ padding: '3px 7px', borderRadius: 4, display: 'inline-block', marginTop: 3,
+                                              background: '#dcfce7', color: '#16a34a', fontWeight: 600 }}>
+                                              ✓ Resolución: {p.resolucion}
+                                            </div>
+                                          )}
                                         </div>
                                       )}
                                     </td>

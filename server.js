@@ -113,7 +113,8 @@ async function leerContenedores() {
       inspeccionado: (c.Inspeccionado || c.inspeccionado) != null
         ? parseFloat(c.Inspeccionado || c.inspeccionado) : null,
       motivo:       c.Motivo    || c.motivo    || "",
-      problema:     c.Problema  || c.problema  || "",
+      problema:     c.Problema   || c.problema   || "",
+      resolucion:   c.Resolucion || c.resolucion || "",
       problemaResuelto: (c.ProblemaResuelto || c.problemaResuelto) === true
         || String(c.ProblemaResuelto || c.problemaResuelto).toLowerCase() === "true",
       timestamp:    c.Timestamp || c.timestamp || "",
