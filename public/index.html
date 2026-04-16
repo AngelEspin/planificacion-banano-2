@@ -1104,6 +1104,190 @@ function ModalEditar({ plan, config, setConfig, onGuardar, onCerrar }) {
   );
 }
 
+// ─── Tab Semanal — resumen compacto por exportadora ──────────────────────────
+function TabSemanal({ planes, config }) {
+  const [semana, setSemana] = useState('');
+  const semanas = [...new Set(planes.map(p => p.semana).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+  const filtrado = semana ? planes.filter(p => p.semana === semana) : planes;
+
+  // Agrupar zona → exportadora
+  const porZona = {};
+  filtrado.forEach(p => {
+    if (!porZona[p.zona]) porZona[p.zona] = {};
+    const exp = p.exportadora;
+    if (!porZona[p.zona][exp]) porZona[p.zona][exp] = { planif: 0, inspec: 0, regs: 0, pend: 0, prob: 0, res: 0 };
+    const g = porZona[p.zona][exp];
+    g.planif += getPlan(p);
+    g.regs++;
+    if (isPending(p)) g.pend++;
+    else g.inspec += getInsp(p);
+    if (p.problema && !p.problemaResuelto) g.prob++;
+    if (p.problema &&  p.problemaResuelto) g.res++;
+  });
+
+  // Resumen total por exportadora (todas las zonas)
+  const totalExp = {};
+  filtrado.forEach(p => {
+    const exp = p.exportadora;
+    if (!totalExp[exp]) totalExp[exp] = { planif: 0, inspec: 0, regs: 0, pend: 0, zonas: new Set() };
+    const g = totalExp[exp];
+    g.planif += getPlan(p);
+    g.regs++;
+    if (isPending(p)) g.pend++;
+    else g.inspec += getInsp(p);
+    g.zonas.add(p.zona.split(' - ')[0]);
+  });
+
+  const zonasConDatos = (config.zonas || []).filter(z => porZona[z]);
+
+  const FilaExp = ({ exp, g }) => {
+    const dif     = +(g.planif - g.inspec).toFixed(2);
+    const allPend = g.pend === g.regs;
+    const rowErr  = !allPend && dif !== 0;
+    const rowCls  = allPend ? 'row-pending' : rowErr ? 'row-error' : g.prob > 0 ? 'row-problema' : g.res > 0 ? 'row-resuelto' : 'row-ok';
+    return (
+      <tr className={rowCls}>
+        <td style={{ fontWeight: 600, fontSize: 12 }}>{exp}</td>
+        <td style={{ textAlign: 'right' }}>{g.regs}</td>
+        <td style={{ textAlign: 'right', fontWeight: 600 }}>{g.planif.toFixed(1)}</td>
+        <td style={{ textAlign: 'right', color: allPend ? '#94a3b8' : 'inherit' }}>
+          {allPend ? '—' : g.inspec.toFixed(1)}
+        </td>
+        <td style={{ textAlign: 'right', fontWeight: 700,
+          color: allPend ? '#94a3b8' : rowErr ? '#dc2626' : '#16a34a' }}>
+          {allPend ? '—' : dif !== 0 ? `-${Math.abs(dif).toFixed(1)}` : '✓'}
+        </td>
+        <td>
+          {allPend      && <span className="badge badge-pending">⏳</span>}
+          {!allPend && rowErr && <span className="badge badge-error">⚠</span>}
+          {!allPend && !rowErr && g.prob === 0 && g.res === 0 && <span className="badge badge-ok">✓</span>}
+          {g.prob > 0  && <span className="badge badge-problema" style={{ marginRight: 3 }}>⚡ {g.prob}</span>}
+          {g.res  > 0  && <span className="badge badge-resuelto">✓ {g.res}</span>}
+        </td>
+      </tr>
+    );
+  };
+
+  return (
+    <div>
+      {/* Selector semana */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-body" style={{ paddingBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>Semana:</span>
+            <select value={semana} onChange={e => setSemana(e.target.value)} style={{ maxWidth: 360 }}>
+              <option value="">Todas las semanas</option>
+              {semanas.map(s => <option key={s} value={s}>{getWeekLabel(s)}</option>)}
+            </select>
+            {semana && (
+              <span className="badge badge-blue" style={{ fontSize: 12, padding: '4px 12px' }}>
+                {filtrado.length} registros
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {filtrado.length === 0 && (
+        <div className="card"><div className="empty-state">Sin registros para mostrar</div></div>
+      )}
+
+      {/* Por zona */}
+      {zonasConDatos.map(zona => {
+        const exps  = Object.entries(porZona[zona]).sort(([a], [b]) => a.localeCompare(b));
+        const totP  = exps.reduce((s, [, g]) => s + g.planif, 0);
+        const totI  = exps.reduce((s, [, g]) => s + g.inspec, 0);
+        const totPb = exps.reduce((s, [, g]) => s + g.prob,   0);
+        const totRs = exps.reduce((s, [, g]) => s + g.res,    0);
+        return (
+          <div key={zona} className="card" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
+            <div className="day-header">
+              <div className="day-name" style={{ fontSize: 13 }}>{zona}</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <span className="badge badge-blue">{totP.toFixed(1)} planif.</span>
+                {totI > 0 && <span className="badge badge-ok">{totI.toFixed(1)} inspec.</span>}
+                {totPb > 0 && <span className="badge badge-problema">⚡ {totPb}</span>}
+                {totRs > 0 && <span className="badge badge-resuelto">✓ {totRs}</span>}
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Exportadora</th>
+                  <th style={{ textAlign: 'right' }}>Reg.</th>
+                  <th style={{ textAlign: 'right' }}>Planif.</th>
+                  <th style={{ textAlign: 'right' }}>Inspec.</th>
+                  <th style={{ textAlign: 'right' }}>Dif.</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {exps.map(([exp, g]) => <FilaExp key={exp} exp={exp} g={g} />)}
+                <tr className="row-total">
+                  <td>TOTAL</td>
+                  <td style={{ textAlign: 'right' }}>{exps.reduce((s,[,g])=>s+g.regs,0)}</td>
+                  <td style={{ textAlign: 'right' }}>{totP.toFixed(1)}</td>
+                  <td style={{ textAlign: 'right' }}>{totI > 0 ? totI.toFixed(1) : '—'}</td>
+                  <td style={{ textAlign: 'right', color: totP - totI !== 0 && totI > 0 ? '#dc2626' : '#16a34a' }}>
+                    {totI > 0 ? (totP - totI !== 0 ? `-${Math.abs(totP - totI).toFixed(1)}` : '✓') : '—'}
+                  </td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {/* Resumen global por exportadora */}
+      {filtrado.length > 0 && (
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="day-header">
+            <div className="day-name">RESUMEN TOTAL — Todas las zonas</div>
+            <span className="badge badge-blue">
+              {Object.values(totalExp).reduce((s,g) => s+g.planif, 0).toFixed(1)} planif.
+            </span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Exportadora</th>
+                <th>Zonas</th>
+                <th style={{ textAlign: 'right' }}>Reg.</th>
+                <th style={{ textAlign: 'right' }}>Planif.</th>
+                <th style={{ textAlign: 'right' }}>Inspec.</th>
+                <th style={{ textAlign: 'right' }}>Dif.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(totalExp).sort(([a],[b]) => a.localeCompare(b)).map(([exp, g]) => {
+                const dif    = +(g.planif - g.inspec).toFixed(2);
+                const allPend= g.pend === g.regs;
+                const rowErr = !allPend && dif !== 0;
+                return (
+                  <tr key={exp} className={allPend ? 'row-pending' : rowErr ? 'row-error' : 'row-ok'}>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{exp}</td>
+                    <td style={{ fontSize: 11, color: '#64748b' }}>{[...g.zonas].join(', ')}</td>
+                    <td style={{ textAlign: 'right' }}>{g.regs}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{g.planif.toFixed(1)}</td>
+                    <td style={{ textAlign: 'right', color: allPend ? '#94a3b8' : 'inherit' }}>
+                      {allPend ? '—' : g.inspec.toFixed(1)}
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 700,
+                      color: allPend ? '#94a3b8' : rowErr ? '#dc2626' : '#16a34a' }}>
+                      {allPend ? '—' : dif !== 0 ? `-${Math.abs(dif).toFixed(1)}` : '✓'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── App principal ────────────────────────────────────────────────────────────
 function App() {
   const [tab,          setTab]          = useState('agregar');
@@ -1216,8 +1400,9 @@ function App() {
       {/* ── Topbar ── */}
       <div className="topbar">
         <div className="topbar-logo">📦 Planificación <span>Banano</span></div>
-        <button className={`nav-tab ${tab === 'agregar' ? 'active' : ''}`} onClick={() => setTab('agregar')}>➕ Agregar</button>
-        <button className={`nav-tab ${tab === 'resumen' ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
+        <button className={`nav-tab ${tab === 'agregar'  ? 'active' : ''}`} onClick={() => setTab('agregar')}>➕ Agregar</button>
+        <button className={`nav-tab ${tab === 'resumen'  ? 'active' : ''}`} onClick={() => setTab('resumen')}>📊 Resumen</button>
+        <button className={`nav-tab ${tab === 'semanal'  ? 'active' : ''}`} onClick={() => setTab('semanal')}>📋 Semanal</button>
         <button className={`nav-tab ${tab === 'importar' ? 'active' : ''}`} onClick={() => setTab('importar')}>📥 Importar</button>
         {saving && <span className="saving-dot">● Guardando...</span>}
       </div>
@@ -1323,6 +1508,7 @@ function App() {
               const dErr  = regs.filter(hasError).length;
               const dPend = regs.filter(isPending).length;
               const dProb = regs.filter(p => p.problema && !p.problemaResuelto).length;
+              const dRes  = regs.filter(p => p.problema &&  p.problemaResuelto).length;
 
               // ── Vista ZONA: agrupar por exportadora ──────────────────────
               if (filterZona) {
@@ -1344,7 +1530,8 @@ function App() {
                         {dPend > 0  && <span className="badge badge-pending">⏳ {dPend} pendiente{dPend > 1 ? 's' : ''}</span>}
                         {dErr > 0   && <span className="badge badge-error">⚠ {dErr} error{dErr > 1 ? 'es' : ''}</span>}
                         {dProb > 0  && <span className="badge badge-problema">⚡ {dProb} problema{dProb > 1 ? 's' : ''}</span>}
-                        {dErr === 0 && dPend === 0 && dProb === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
+                        {dRes  > 0  && <span className="badge badge-resuelto">✓ {dRes} resuelto{dRes > 1 ? 's' : ''}</span>}
+                        {dErr === 0 && dPend === 0 && dProb === 0 && dRes === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
                       </div>
                     </div>
                     <table>
@@ -1365,8 +1552,10 @@ function App() {
                           const allPend  = g.pend === g.records.length;
                           const somePend = g.pend > 0;
                           const rowErr   = !allPend && dif !== 0;
-                          const hasProb  = g.records.some(p => p.problema && !p.problemaResuelto);
-                          const hasResuelto = !hasProb && g.records.some(p => p.problema && p.problemaResuelto);
+                          const probCnt    = g.records.filter(p => p.problema && !p.problemaResuelto).length;
+                          const resuelCnt  = g.records.filter(p => p.problema &&  p.problemaResuelto).length;
+                          const hasProb    = probCnt > 0;
+                          const hasResuelto= resuelCnt > 0;
                           const rowCls = allPend ? 'row-pending' : rowErr ? 'row-error' : hasProb ? 'row-problema' : hasResuelto ? 'row-resuelto' : 'row-ok';
                           const key    = `${dia}||${exp}`;
                           return (
@@ -1387,8 +1576,8 @@ function App() {
                                   {!allPend && somePend && <span className="badge badge-pending">⏳ {g.pend} pend.</span>}
                                   {!somePend && rowErr  && <span className="badge badge-error">⚠ Error</span>}
                                   {!somePend && !rowErr && !hasProb && !hasResuelto && <span className="badge badge-ok">✓ OK</span>}
-                                  {hasProb     && <span className="badge badge-problema">⚡ Problema</span>}
-                                  {hasResuelto && <span className="badge badge-resuelto">✓ Resuelto</span>}
+                                  {hasProb     && <span className="badge badge-problema">⚡ {probCnt}</span>}
+                                  {hasResuelto && <span className="badge badge-resuelto">✓ {resuelCnt}</span>}
                                 </td>
                                 <td>
                                   <button className="btn sm" onClick={() => toggleExpand(key)}
@@ -1573,6 +1762,11 @@ function App() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ════════════════ TAB SEMANAL ════════════════ */}
+        {tab === 'semanal' && (
+          <TabSemanal planes={planes} config={config} />
         )}
 
         {/* ════════════════ TAB IMPORTAR ════════════════ */}
