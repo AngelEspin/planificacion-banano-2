@@ -18,7 +18,7 @@ const CONFIG_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOW0mHlIIUjd
 // ── Cache de config (evita llamar a Sheets en cada clic) ──────────────────────
 let _configCache     = null;
 let _configCacheTime = 0;
-const CONFIG_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+const CONFIG_CACHE_TTL = 30 * 1000; // 30 segundos
 
 // ── Helpers para llamar al Apps Script de config ──────────────────────────────
 async function sheetsGet(params = {}) {
