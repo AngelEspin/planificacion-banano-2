@@ -60,10 +60,12 @@
 
     /* ── Badges ── */
     .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-    .badge-ok      { background: #dcfce7; color: #16a34a; }
-    .badge-error   { background: #fee2e2; color: #dc2626; }
-    .badge-pending { background: #fef3c7; color: #b45309; }
-    .badge-blue    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-ok       { background: #dcfce7; color: #16a34a; }
+    .badge-error    { background: #fee2e2; color: #dc2626; }
+    .badge-pending  { background: #fef3c7; color: #b45309; }
+    .badge-blue     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-problema { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .badge-resuelto { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
 
     /* ── Banner diferencia ── */
     .diff-banner { padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
@@ -75,10 +77,14 @@
     .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 12px; text-align: center; }
     .stat-val { font-size: 26px; font-weight: 700; color: #0f2040; line-height: 1.1; }
     .stat-label { font-size: 10px; color: #64748b; margin-top: 5px; text-transform: uppercase; letter-spacing: .3px; }
-    .stat.error   { border-color: #fca5a5; background: #fff5f5; }
-    .stat.error .stat-val { color: #dc2626; }
-    .stat.pending { border-color: #fcd34d; background: #fffbeb; }
-    .stat.pending .stat-val { color: #b45309; }
+    .stat.error    { border-color: #fca5a5; background: #fff5f5; }
+    .stat.error .stat-val    { color: #dc2626; }
+    .stat.pending  { border-color: #fcd34d; background: #fffbeb; }
+    .stat.pending .stat-val  { color: #b45309; }
+    .stat.problema { border-color: #fed7aa; background: #fff7ed; }
+    .stat.problema .stat-val { color: #c2410c; }
+    .stat.resuelto { border-color: #bfdbfe; background: #eff6ff; }
+    .stat.resuelto .stat-val { color: #1d4ed8; }
 
     /* ── Cabecera de día ── */
     .day-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 2px solid #e2e8f0; background: #f8fafc; border-radius: 8px 8px 0 0; }
@@ -89,12 +95,16 @@
     table thead { background: #f1f5f9; }
     table th { padding: 9px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
     table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: middle; }
-    .row-ok      { background: #f0fdf4; }
+    .row-ok       { background: #f0fdf4; }
     .row-ok:hover { background: #dcfce7; }
-    .row-error   { background: #fff5f5; }
+    .row-error    { background: #fff5f5; }
     .row-error:hover { background: #fee2e2; }
-    .row-pending { background: #fffbeb; }
+    .row-pending  { background: #fffbeb; }
     .row-pending:hover { background: #fef3c7; }
+    .row-problema { background: #fff7ed; }
+    .row-problema:hover { background: #ffedd5; }
+    .row-resuelto { background: #f0f9ff; }
+    .row-resuelto:hover { background: #e0f2fe; }
     .row-detail  { background: #f8fafc; }
     .row-total   { background: #e2e8f0; font-weight: 700; }
     .row-total td { border-top: 2px solid #cbd5e1; border-bottom: none; font-size: 12px; }
@@ -223,10 +233,12 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
   const [inspeccionado, setInspeccionado] = useState(
     inicial != null && getInsp(inicial) != null ? String(getInsp(inicial)) : ''
   );
-  const [fincas,        setFincas]        = useState(inicial?.fincas ?? []);
-  const [tecnicos,      setTecnicos]      = useState(inicial?.tecnicos ?? []);
-  const [motivo,        setMotivo]        = useState(inicial?.motivo ?? '');
-  const [buscarFinca,   setBuscarFinca]   = useState('');
+  const [fincas,           setFincas]           = useState(inicial?.fincas ?? []);
+  const [tecnicos,         setTecnicos]         = useState(inicial?.tecnicos ?? []);
+  const [motivo,           setMotivo]           = useState(inicial?.motivo ?? '');
+  const [problema,         setProblema]         = useState(inicial?.problema ?? '');
+  const [problemaResuelto, setProblemaResuelto] = useState(inicial?.problemaResuelto ?? false);
+  const [buscarFinca,      setBuscarFinca]      = useState('');
 
   // Agregar nuevo técnico inline
   const [mostrarNuevoTec, setMostrarNuevoTec] = useState(false);
@@ -317,8 +329,10 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
       inspeccionado: inspValor,
       fincas,
       tecnicos,
-      motivo:       (inspValor != null && hayDiff) ? motivo.trim() : '',
-      timestamp:    inicial?.timestamp ?? new Date().toISOString()
+      motivo:           (inspValor != null && hayDiff) ? motivo.trim() : '',
+      problema:         problema.trim(),
+      problemaResuelto: problema.trim() ? problemaResuelto : false,
+      timestamp:        inicial?.timestamp ?? new Date().toISOString()
     });
   };
 
@@ -465,6 +479,43 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
             value={motivo} onChange={e => setMotivo(e.target.value)} />
         </div>
       )}
+
+      {/* Problema / Incidencia */}
+      <div className="form-group" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 14 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+          color: problema ? '#c2410c' : '#64748b', fontSize: 12,
+          textTransform: 'uppercase', fontWeight: 700, letterSpacing: '.4px' }}>
+          <input
+            type="checkbox"
+            checked={problema !== ''}
+            onChange={() => setProblema(prev => prev !== '' ? '' : ' ')}
+            style={{ width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }}
+          />
+          ¿Hubo algún problema en este proceso?
+        </label>
+        {problema !== '' && (
+          <div style={{ marginTop: 10 }}>
+            <textarea
+              rows={2}
+              placeholder="Describe brevemente el problema (ej: falla de equipo, acceso denegado...)"
+              value={problema}
+              onChange={e => setProblema(e.target.value)}
+              style={{ borderColor: '#fed7aa', background: '#fff7ed' }}
+            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={problemaResuelto}
+                onChange={e => setProblemaResuelto(e.target.checked)}
+                style={{ width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }}
+              />
+              <span style={{ color: problemaResuelto ? '#1d4ed8' : '#c2410c', fontWeight: 600, fontSize: 12 }}>
+                {problemaResuelto ? '✓ Problema resuelto' : '⚡ Pendiente de resolver'}
+              </span>
+            </label>
+          </div>
+        )}
+      </div>
 
       {/* Acciones */}
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
@@ -808,7 +859,20 @@ function TabImportar({ config, setConfig, onImportar }) {
   return (
     <div className="card">
       <div className="card-body">
-        <div className="card-title">📥 Importar distribuciones desde Excel</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div className="card-title" style={{ margin: 0 }}>📥 Importar distribuciones desde Excel</div>
+          <button className="btn sm" title="Descarga el catálogo actual de fincas y técnicos como JSON"
+            onClick={() => {
+              const json = JSON.stringify({ fincas: config.fincas, tecnicos: config.tecnicos }, null, 2);
+              const blob = new Blob([json], { type: 'application/json' });
+              const url  = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'catalogo-config.json'; a.click();
+              URL.revokeObjectURL(url);
+            }}>
+            ⬇ Exportar catálogo JSON
+          </button>
+        </div>
 
         {/* Paso 1: Seleccionar tipo (Semana/Día) y valor */}
         {registrosParsea.length === 0 && (
@@ -1111,10 +1175,12 @@ function App() {
     .filter(p => !filterSemana || p.semana === filterSemana)
     .filter(p => !filterZona   || p.zona   === filterZona);
 
-  const totalPlan  = filtrado.reduce((s, p) => s + getPlan(p), 0);
-  const totalInsp  = filtrado.filter(p => !isPending(p)).reduce((s, p) => s + getInsp(p), 0);
-  const pendientes = filtrado.filter(isPending).length;
-  const conError   = filtrado.filter(hasError).length;
+  const totalPlan   = filtrado.reduce((s, p) => s + getPlan(p), 0);
+  const totalInsp   = filtrado.filter(p => !isPending(p)).reduce((s, p) => s + getInsp(p), 0);
+  const pendientes  = filtrado.filter(isPending).length;
+  const conError    = filtrado.filter(hasError).length;
+  const conProblema = filtrado.filter(p => p.problema && !p.problemaResuelto).length;
+  const resueltos   = filtrado.filter(p => p.problema && p.problemaResuelto).length;
 
   // Agrupar por día, ordenar Lunes→Domingo
   const porDia = {};
@@ -1208,6 +1274,18 @@ function App() {
                 <div className="stat-val">{conError}</div>
                 <div className="stat-label">Con errores</div>
               </div>
+              {conProblema > 0 && (
+                <div className="stat problema">
+                  <div className="stat-val">{conProblema}</div>
+                  <div className="stat-label">Con problemas</div>
+                </div>
+              )}
+              {resueltos > 0 && (
+                <div className="stat resuelto">
+                  <div className="stat-val">{resueltos}</div>
+                  <div className="stat-label">Resueltos</div>
+                </div>
+              )}
             </div>
 
             {/* Filtro semana */}
@@ -1233,6 +1311,7 @@ function App() {
               const dDiff = +(dPlan - dInsp).toFixed(2);
               const dErr  = regs.filter(hasError).length;
               const dPend = regs.filter(isPending).length;
+              const dProb = regs.filter(p => p.problema && !p.problemaResuelto).length;
 
               // ── Vista ZONA: agrupar por exportadora ──────────────────────
               if (filterZona) {
@@ -1250,10 +1329,11 @@ function App() {
                   <div key={dia} className="card" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
                     <div className="day-header">
                       <div className="day-name">{dia}</div>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {dPend > 0  && <span className="badge badge-pending">⏳ {dPend} pendiente{dPend > 1 ? 's' : ''}</span>}
                         {dErr > 0   && <span className="badge badge-error">⚠ {dErr} error{dErr > 1 ? 'es' : ''}</span>}
-                        {dErr === 0 && dPend === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
+                        {dProb > 0  && <span className="badge badge-problema">⚡ {dProb} problema{dProb > 1 ? 's' : ''}</span>}
+                        {dErr === 0 && dPend === 0 && dProb === 0 && <span className="badge badge-ok">✓ Todo OK</span>}
                       </div>
                     </div>
                     <table>
@@ -1271,10 +1351,12 @@ function App() {
                         {exportadoras.map(exp => {
                           const g      = expMap[exp];
                           const dif    = +(g.planif - g.inspec).toFixed(2);
-                          const allPend= g.pend === g.records.length;
+                          const allPend  = g.pend === g.records.length;
                           const somePend = g.pend > 0;
-                          const rowErr = !allPend && dif !== 0;
-                          const rowCls = allPend ? 'row-pending' : (rowErr ? 'row-error' : 'row-ok');
+                          const rowErr   = !allPend && dif !== 0;
+                          const hasProb  = g.records.some(p => p.problema && !p.problemaResuelto);
+                          const hasResuelto = !hasProb && g.records.some(p => p.problema && p.problemaResuelto);
+                          const rowCls = allPend ? 'row-pending' : rowErr ? 'row-error' : hasProb ? 'row-problema' : hasResuelto ? 'row-resuelto' : 'row-ok';
                           const key    = `${dia}||${exp}`;
                           return (
                             <React.Fragment key={exp}>
@@ -1293,7 +1375,9 @@ function App() {
                                   {allPend   && <span className="badge badge-pending">⏳ Pendiente</span>}
                                   {!allPend && somePend && <span className="badge badge-pending">⏳ {g.pend} pend.</span>}
                                   {!somePend && rowErr  && <span className="badge badge-error">⚠ Error</span>}
-                                  {!somePend && !rowErr && <span className="badge badge-ok">✓ OK</span>}
+                                  {!somePend && !rowErr && !hasProb && !hasResuelto && <span className="badge badge-ok">✓ OK</span>}
+                                  {hasProb     && <span className="badge badge-problema">⚡ Problema</span>}
+                                  {hasResuelto && <span className="badge badge-resuelto">✓ Resuelto</span>}
                                 </td>
                                 <td>
                                   <button className="btn sm" onClick={() => toggleExpand(key)}
@@ -1305,16 +1389,26 @@ function App() {
 
                               {/* Sub-filas individuales (expandibles) */}
                               {expanded[key] && g.records.map(p => {
-                                const pd  = isPending(p);
-                                const pe  = hasError(p);
+                                const pd    = isPending(p);
+                                const pe    = hasError(p);
                                 const pdiff = getDiff(p);
+                                const pProb = p.problema && !p.problemaResuelto;
+                                const pRes  = p.problema && p.problemaResuelto;
+                                const subBg = pProb ? '#fff7ed' : pRes ? '#f0f9ff' : undefined;
                                 return (
-                                  <tr key={p.id} className="row-sub">
+                                  <tr key={p.id} className="row-sub" style={subBg ? { background: subBg } : undefined}>
                                     <td style={{ paddingLeft: 24 }}>
                                       <div>{p.fincas.join(', ')}</div>
                                       <div style={{ color: '#94a3b8', marginTop: 2 }}>{p.tecnicos.join(' / ')}</div>
                                       {pe && p.motivo && (
-                                        <div style={{ color: '#dc2626', marginTop: 2 }}>Motivo: {p.motivo}</div>
+                                        <div style={{ color: '#dc2626', marginTop: 2, fontSize: 11 }}>⚠ Motivo: {p.motivo}</div>
+                                      )}
+                                      {p.problema && (
+                                        <div style={{ marginTop: 4, padding: '3px 7px', borderRadius: 4, display: 'inline-block', fontSize: 11,
+                                          background: pProb ? '#fed7aa' : '#bfdbfe',
+                                          color: pProb ? '#c2410c' : '#1d4ed8', fontWeight: 600 }}>
+                                          {pProb ? '⚡ Problema: ' : '✓ Resuelto: '}{p.problema}
+                                        </div>
                                       )}
                                     </td>
                                     <td style={{ textAlign: 'right' }}>{getPlan(p).toFixed(1)}</td>
@@ -1328,7 +1422,9 @@ function App() {
                                     <td>
                                       {pd && <span className="badge badge-pending">⏳</span>}
                                       {pe && <span className="badge badge-error">⚠</span>}
-                                      {isOK(p) && <span className="badge badge-ok">✓</span>}
+                                      {isOK(p) && !pProb && !pRes && <span className="badge badge-ok">✓</span>}
+                                      {pProb && <span className="badge badge-problema">⚡</span>}
+                                      {pRes  && <span className="badge badge-resuelto">✓</span>}
                                     </td>
                                     <td>
                                       <div className="actions">
