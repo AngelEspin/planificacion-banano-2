@@ -245,6 +245,10 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
   const [mostrarNuevoTec, setMostrarNuevoTec] = useState(false);
   const [nuevoTecNombre,  setNuevoTecNombre]  = useState('');
 
+  // Agregar nueva exportadora inline
+  const [mostrarNuevaExp, setMostrarNuevaExp] = useState(false);
+  const [nuevaExpNombre,  setNuevaExpNombre]  = useState('');
+
   // Agregar nueva finca inline
   const [mostrarNuevaFinca, setMostrarNuevaFinca] = useState(false);
   const [nuevaFincaNombre,  setNuevaFincaNombre]  = useState('');
@@ -275,7 +279,7 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
     setTecnicos(prev => [...prev, t]);
   };
 
-  const handleZona = v => { setZona(v); setExportadora(''); setFincas([]); setBuscarFinca(''); setMostrarNuevaFinca(false); };
+  const handleZona = v => { setZona(v); setExportadora(''); setFincas([]); setBuscarFinca(''); setMostrarNuevaFinca(false); setMostrarNuevaExp(false); };
   const handleExp  = v => { setExportadora(v); setFincas([]); setBuscarFinca(''); setMostrarNuevaFinca(false); };
 
   const confirmarNuevoTecnico = async () => {
@@ -287,6 +291,25 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
     setNuevoTecNombre('');
     setMostrarNuevoTec(false);
     setTecnicos(prev => prev.length < 2 ? [...prev, nombre] : prev);
+    await saveConfig(nuevoConfig).catch(console.error);
+  };
+
+  const confirmarNuevaExportadora = async () => {
+    const nombre = nuevaExpNombre.trim().toUpperCase();
+    if (!nombre || !zona) return;
+    const existentes = Object.keys(config.fincas[zona] || {});
+    if (existentes.includes(nombre)) { alert('Esa exportadora ya existe en esta zona.'); return; }
+    const nuevoConfig = {
+      ...config,
+      fincas: {
+        ...config.fincas,
+        [zona]: { ...config.fincas[zona], [nombre]: [] }
+      }
+    };
+    setConfig(nuevoConfig);
+    setNuevaExpNombre('');
+    setMostrarNuevaExp(false);
+    setExportadora(nombre);
     await saveConfig(nuevoConfig).catch(console.error);
   };
 
@@ -369,6 +392,22 @@ function FormularioPlan({ config, setConfig, inicial, esEdicion, fechaInicial, o
               <option value="">-- Selecciona --</option>
               {exportadoras.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
+            
+            {/* Nueva exportadora inline */}
+            {!mostrarNuevaExp
+              ? <button className="btn ghost" style={{ marginTop: 8 }} onClick={() => setMostrarNuevaExp(true)}>
+                  + Nueva exportadora en {zona.split(' — ')[0]}
+                </button>
+              : (
+                <div className="inline-add">
+                  <input type="text" placeholder="Nombre de la nueva exportadora"
+                    value={nuevaExpNombre} onChange={e => setNuevaExpNombre(e.target.value.toUpperCase())}
+                    onKeyDown={e => e.key === 'Enter' && confirmarNuevaExportadora()} />
+                  <button className="btn sm amber" onClick={confirmarNuevaExportadora}>Agregar</button>
+                  <button className="btn sm" onClick={() => { setMostrarNuevaExp(false); setNuevaExpNombre(''); }}>✕</button>
+                </div>
+              )
+            }
           </div>
         )}
       </div>
